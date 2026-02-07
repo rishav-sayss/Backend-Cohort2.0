@@ -74,8 +74,8 @@ function App() {
     <div>
       <header>
         <form className='container' onSubmit={handlesubmit} >
-          <input type="text" required value={settitle} onChange={(e) => settitle(e.target.value)} placeholder='Enter Title' />
-          <input type="text" required value={setdesc} onChange={(e) => setdesc(e.target.value)} placeholder='Enter Description' />
+          <input type="text" required value={title} onChange={(e) => settitle(e.target.value)} placeholder='Enter Title' />
+          <input type="text" required value={desc} onChange={(e) => setdesc(e.target.value)} placeholder='Enter Description' />
           <button className='primary' type="submit">Submit</button>
         </form>
       </header>
