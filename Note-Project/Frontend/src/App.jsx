@@ -12,7 +12,7 @@ function App() {
   let [note, setnote] = useState([])
   async function handlesubmit(e) {
     e.preventDefault()
-    let response = await axios.post("http://localhost:3000/api/notes", {
+    let response = await axios.post("https://backend-cohort2-0-5e0v.onrender.com/api/notes", {
       title: title,
       description: desc
     })
@@ -24,13 +24,13 @@ function App() {
   }
 
   async function fetchdata() {
-    let response = await axios.get("http://localhost:3000/api/notes")
+    let response = await axios.get("https://backend-cohort2-0-5e0v.onrender.com/api/notes")
     setnote(response.data.data)
 
   }
 
   async function deletenote(noteId) {
-    let response = await axios.delete(`http://localhost:3000/api/notes/${noteId}`)
+    let response = await axios.delete(`https://backend-cohort2-0-5e0v.onrender.com/api/notes/${noteId}`)
     fetchdata()
     triggerToast("Note Deleted ")
 
@@ -59,7 +59,7 @@ function App() {
   }
 
   async function confirmupdated() {
-    let response = await axios.patch(`http://localhost:3000/api/notes/${editid}`, {
+    let response = await axios.patch(`https://backend-cohort2-0-5e0v.onrender.com/api/notes/${editid}`, {
       title: title,
       description: desc
     })
