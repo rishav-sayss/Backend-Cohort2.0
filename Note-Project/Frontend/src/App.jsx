@@ -73,12 +73,34 @@ function App() {
   return (
     <div>
       <header>
-        <form className='container' onSubmit={handlesubmit} >
-          <input type="text" required value={title} onChange={(e) => settitle(e.target.value)} placeholder='Enter Title' />
-          <input type="text" required value={desc} onChange={(e) => setdesc(e.target.value)} placeholder='Enter Description' />
+        <form className='container' onSubmit={handlesubmit}>
+
+          <input
+            type="text"
+            required
+            value={title}
+            onChange={(e) => {
+              console.log("Title:", e.target.value)
+              settitle(e.target.value)
+            }}
+            placeholder='Enter Title'
+          />
+
+          <input
+            type="text"
+            required
+            value={desc}
+            onChange={(e) => {
+              console.log("Desc:", e.target.value)
+              setdesc(e.target.value)
+            }}
+            placeholder='Enter Description'
+          />
+
           <button className='primary' type="submit">Submit</button>
         </form>
       </header>
+
       <section className='main'>
         {
           note.map((val, idx) => {
