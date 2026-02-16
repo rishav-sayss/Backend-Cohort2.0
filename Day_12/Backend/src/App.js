@@ -7,6 +7,6 @@ const postroute = require("./routes/post.route");
 App.use(express.json())
 
 App.use("/api/auth", authrouter)
-App.use("/api/auth", postroute)
+App.use("/api/post", postroute)
 
 module.exports = App

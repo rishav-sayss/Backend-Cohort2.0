@@ -11,6 +11,7 @@ let registerUser = async (req, res) => {
 
     try {
         let { username, email, password, bio, profile } = req.body
+
         if (!username || !email || !password) {
             return res.status(400).json({
                 message: "Required fields missing"
@@ -22,6 +23,7 @@ let registerUser = async (req, res) => {
                 { username }
             ]
         })
+
         if (isuserexist) {
             return res.status(409).json({
                 message: " user already exist " + (isuserexist.email == email ? "User Email already exist " : "User name already exist ")
@@ -92,7 +94,7 @@ let loginapi = async (req, res) => {
         }, process.env.JWT_SECREAT, { expiresIn: "1d" }
         )
 
-        console.log('token', Token);
+        // console.log('token', Token);
         res.cookie("token", Token)
 
         res.status(201).json({
