@@ -1,6 +1,5 @@
 let mongoose = require("mongoose")
 
-
 let postschema = new mongoose.Schema({
     caption: {
         type: String,
