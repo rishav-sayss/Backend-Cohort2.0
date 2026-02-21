@@ -1,7 +1,9 @@
 let userdata = require("../Modals/post.model")
+let postdata = require("../Modals/post.model")
+let likedata = require("../Modals/Like.modal")
 let Imagekit = require("@imagekit/nodejs")
 let { toFile } = require("@imagekit/nodejs")
- 
+
 let imagekit = new Imagekit({
     privateKey: process.env.PRIVATE_IMAGE_KIT
 })
@@ -21,7 +23,7 @@ let postcontroller = async (req, res) => {
     let post = await userdata.create({
         caption: req.body.caption,
         image_url: file.url,
-        user:  req.user.id
+        user: req.user.id
     })
 
 
@@ -51,27 +53,53 @@ let getpostdetailscontroller = async (req, res) => {
     let userId = req.user.id
     let postId = req.params.postId
 
-    let post = await  userdata.findById(postId)
+    let post = await userdata.findById(postId)
     // console.log(post)
     if (!post) {
         return res.status(404).json({
-            message:" Post Not Found"
+            message: " Post Not Found"
         })
     }
 
     let isvaliduser = post.user.toString() === userId
-    
-    if(!isvaliduser){
+
+    if (!isvaliduser) {
         return res.status(403).json({
-            message:"Forbiden Content"
+            message: "Forbiden Content"
         })
     }
 
     res.status(200).json({
-        message:"Post fetched  successfully.",
+        message: "Post fetched  successfully.",
         post
     })
 
 }
 
-module.exports = { postcontroller, getpostcontroller, getpostdetailscontroller }
+let likepostcontroller = async (req, res) => {
+
+    const username = req.user.username
+    const postId = req.params.postId
+
+    const post = await postdata.findById(postId)
+    console.log(post)
+    if (!post) {
+        return res.status(404).json({
+            message: "Post not found."
+        })
+    }
+
+    const like = await likedata.create({
+        post: postId,
+        user: username
+    })
+
+    res.status(200).json({
+        message: "Post liked successfully.",
+        like
+    })
+
+
+}
+
+module.exports = { postcontroller, getpostcontroller, getpostdetailscontroller, likepostcontroller }

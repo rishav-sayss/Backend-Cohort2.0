@@ -2,6 +2,7 @@ let JWT = require("jsonwebtoken")
 
 let checkvalidation = (req, res,next) => {
     let token = req.cookies.token
+     
     if (!token) {
         return res.status(401).json({
             message: "Unauthorized user access"
@@ -18,7 +19,7 @@ let checkvalidation = (req, res,next) => {
         res.status(401).json({
             message: "Token invalid"
         })
-    }``
+    }
 
     req.user = decode
     next()

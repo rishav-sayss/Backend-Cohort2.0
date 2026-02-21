@@ -35,11 +35,20 @@ let registerUser = async (req, res) => {
             username, email, password: haspas, bio, profile
         })
 
-        let Token = JWT.sign({ user: user._id }, process.env.JWT_SECREAT, { expiresIn: "1d" })
+        let Token = JWT.sign(
+            {
+                user: user._id,
+                username: user.username
+            },
+            process.env.JWT_SECREAT,
+            { expiresIn: "1d" }
+        )
 
-        res.cookie("token", Token, {
-            httpOnly: true,
-            maxAge: 7 * 24 * 60 * 60 * 1000
+        res.cookie("token", Token,{
+            http:true,
+            secure:false,// production me true
+            sameSite:"lax",
+            maxAge:7*24*60*60*1000
         })
 
         res.status(201).json({
@@ -90,12 +99,18 @@ let loginapi = async (req, res) => {
         }
 
         let Token = JWT.sign({
-            id: user._id
+            id: user._id,
+            username: user.username
         }, process.env.JWT_SECREAT, { expiresIn: "1d" }
         )
 
         // console.log('token', Token);
-        res.cookie("token", Token)
+        res.cookie("token", Token, {
+            httpOnly: true, 
+            secure: false, // production me true
+            sameSite: "lax",
+            maxAge: 7 * 24 * 60 * 60 * 1000
+        })
 
         res.status(201).json({
             message: "Login Success",
