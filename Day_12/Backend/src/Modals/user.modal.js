@@ -14,12 +14,13 @@ let userschema = new mongoose.Schema({
     password: {
         type: String,
         unique: [true, "User name already exist "],
-        required: true
+        required: true,
+        select:false
     },
     bio:String,
     profile:{
         type:String,
-        default:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTgsaRe2zqH_BBicvUorUseeTaE4kxPL2FmOQ&s"
+        default:"https://www.shutterstock.com/image-vector/default-avatar-profile-icon-social-600nw-1906669723.jpg"
     },
     
 

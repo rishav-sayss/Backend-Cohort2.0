@@ -10,8 +10,8 @@ let postschema = new mongoose.Schema({
         required: [true, "imgUrl is required for creating an post"]
     },
     user: {
-        ref: "users",
         type: mongoose.Schema.Types.ObjectId,
+        ref: "user",
         required: [true, "user id is required for creating an post"]
     }
 })

@@ -4,12 +4,13 @@ import { useAuth } from '../Hook/useAuth'
 import { useNavigate } from 'react-router-dom'
 function Register() {
 
-    let { user, loading, handelregister } = useAuth()
+    let { loading, handelregister } = useAuth()
     let [username, setUsername] = useState("")
     let [password, setPassword] = useState("")
     let [email, setemail] = useState("")
 
     let navigate = useNavigate()
+
     async function formhandler(e) {
         e.preventDefault()
         await handelregister(username, email, password)

@@ -14,7 +14,7 @@ let checkvalidation = (req, res,next) => {
     try {
         //verify the user token
         decode = JWT.verify(token, process.env.JWT_SECREAT)
-        // console.log(decode)
+        
     } catch (error) {
         res.status(401).json({
             message: "Token invalid"
@@ -22,6 +22,7 @@ let checkvalidation = (req, res,next) => {
     }
 
     req.user = decode
+     
     next()
 }
 

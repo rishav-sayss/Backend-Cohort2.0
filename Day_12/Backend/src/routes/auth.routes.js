@@ -6,11 +6,12 @@
 // product routes → add, delete, update
 // Router use karke hum inhe alag files me rakh sakte hain.
 
-let { registerUser, loginapi } = require("../Controler/authcontroller")
+let { registerUser, loginapi,  getMeController} = require("../Controler/authcontroller")
 let Express = require("express")
 let AuthRouter = Express.Router()
+let validation = require("../Middelwere/auth.middelwere")
 
 AuthRouter.post("/register", registerUser)
 AuthRouter.post("/login", loginapi)
-
+AuthRouter.get("/get-me", validation ,getMeController)
 module.exports = AuthRouter

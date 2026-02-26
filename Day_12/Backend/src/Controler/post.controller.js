@@ -82,7 +82,7 @@ let likepostcontroller = async (req, res) => {
     const postId = req.params.postId
 
     const post = await postdata.findById(postId)
-    console.log(post)
+
     if (!post) {
         return res.status(404).json({
             message: "Post not found."
@@ -102,4 +102,23 @@ let likepostcontroller = async (req, res) => {
 
 }
 
-module.exports = { postcontroller, getpostcontroller, getpostdetailscontroller, likepostcontroller }
+let getFeedController = async (req, res) => {
+    let user = req.user
+    let getallpost = await Promise.all((await (postdata.find().populate("user").lean()))
+        .map(async (post) => {
+            let isliked = await likedata.findOne({
+                post: post._id,
+                user: user.username
+            })
+            post.isliked = Boolean(isliked)
+            return post
+        }))
+
+    res.status(200).json({
+        message: "post fetch succesfully",
+        getallpost
+    })
+
+}
+
+module.exports = { postcontroller, getpostcontroller, getpostdetailscontroller, likepostcontroller, getFeedController }

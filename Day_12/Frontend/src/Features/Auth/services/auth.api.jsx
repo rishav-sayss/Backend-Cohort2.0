@@ -14,3 +14,10 @@ export let register = async (username, email, password) => {
     let response = await api.post("/register", { username, email, password })
     return response.data
 }
+
+
+export async function getMe() {
+    const response = await api.get('/get-me')
+
+    return response.data
+}

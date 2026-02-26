@@ -82,7 +82,7 @@ let loginapi = async (req, res) => {
                 { email: email },
                 { username: username }
             ]
-        })
+        }).select("+password")
 
         if (!user) {
             return res.status(401).json({
@@ -129,4 +129,19 @@ let loginapi = async (req, res) => {
     }
 }
 
-module.exports = { registerUser, loginapi } 
+async function getMeController(req, res) {
+    const userId = req.user.id
+
+    const user = await usermodal.findById(userId)
+
+    res.status(200).json({
+        user: {
+            username: user.username,
+            email: user.email,
+            bio: user.bio,
+            profile: user.profile
+        }
+    })
+}
+
+module.exports = { registerUser, loginapi, getMeController } 
