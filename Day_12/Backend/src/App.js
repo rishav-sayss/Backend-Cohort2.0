@@ -6,7 +6,7 @@ let App = express();
 App.use(cors({
     credentials: true,
     origin: "http://localhost:5173",
-     methods: [ "GET", "POST", "PUT", "DELETE" ],
+    methods: [ "GET", "POST", "PUT", "DELETE" ],
 }))
 
 App.use(cookieparser())

@@ -102,6 +102,31 @@ let likepostcontroller = async (req, res) => {
 
 }
 
+let unlikepostcontroller = async (req, res) => {
+    const username = req.user.username
+    const postId = req.params.postId
+
+    let unlike = await likedata.findOne({
+        post: postId,
+        user: username
+    })
+
+    if (!unlike) {
+        return res.status(400).json({
+            message: "Post didn't like"
+        })
+    }
+
+    await likedata.findByIdAndDelete({_id:unlike._id})
+
+    res.status(200).json({
+        message: "Post unliked successfully.",
+        unlike
+    })
+
+}
+
+
 let getFeedController = async (req, res) => {
     let user = req.user
     let getallpost = await Promise.all((await (postdata.find().populate("user").lean()))
@@ -121,4 +146,4 @@ let getFeedController = async (req, res) => {
 
 }
 
-module.exports = { postcontroller, getpostcontroller, getpostdetailscontroller, likepostcontroller, getFeedController }
+module.exports = { postcontroller, getpostcontroller, getpostdetailscontroller, likepostcontroller, unlikepostcontroller,getFeedController }

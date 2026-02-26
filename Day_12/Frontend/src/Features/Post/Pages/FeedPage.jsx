@@ -2,8 +2,9 @@ import React, { useEffect } from 'react'
 import "../style/feed.scss"
 import Post from '../component/Post'
 import { usepost } from '../Hook/userPost'
+import Navbar from '../../Shared/component/Navbar'
 function FeedPage() {
-    let { feed, handelfeed, loading } = usepost()
+    let { feed, handelfeed, loading, handellikepost, handelunlikepost } = usepost()
 
     useEffect(() => {
         handelfeed()
@@ -12,18 +13,22 @@ function FeedPage() {
     if (!feed || loading) {
         return (
             <main>
-                <h1> feed is loading Loading...</h1>
+                <h1> Feed is Loading...</h1>
             </main>
         )
     }
     return (
         <div>
             <main className='feed-page'>
+
                 <div className="feed">
+                    <Navbar />
                     <div className="posts">
+
                         {
-                            feed.map((post,idx) => {
-                                return <Post key={idx} user={post.user} post={post}   />
+                            feed.map((post, idx) => {
+                                return <Post key={idx} user={post.user} post={post} handellikepost={handellikepost}
+                                    handelunlikepost={handelunlikepost} />
                             })
                         }
                     </div>

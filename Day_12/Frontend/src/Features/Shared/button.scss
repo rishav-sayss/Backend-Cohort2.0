@@ -1,18 +1,42 @@
- .button{
-    border: none;
-    outline: none;
-    padding-inline: 1rem;
-    padding-block: 0.7rem;
-    border-radius: 1rem;
-    cursor: pointer;
-    transition: all 0.3s ease-in-out;
+ .button {
+     border: none;
+     outline: none;
+     padding-inline: 1rem;
+     padding-block: 0.7rem;
+     border-radius: 1rem;
+     cursor: pointer;
+     transition: all 0.3s ease-in-out;
+    font-family: 'Billabong', cursive;
+     &.primary-button {
+         background-color: #d20c3d;
+         color: rgb(255, 245, 236);
+     }
 
-    &.primary-button{
-        background-color: #d20c3d;
-        color: rgb(255, 245, 236);
-    }
+     &:hover {
+         background: linear-gradient(90deg,
+                 #f09433,
+                 #e6683c,
+                 #dc2743,
+                 #cc2366,
+                 #bc1888,
+                 #f09433);
+         background-size: 300% 100%;
+         animation: instaMove 3s linear infinite;
+         color: white;
+     }
 
-    &:active{
-        transform: scale(0.9);
-    }
-}
+
+     &:active {
+         transform: scale(0.95);
+     }
+ }
+
+ @keyframes instaMove {
+     from {
+         background-position: 0% 0%;
+     }
+
+     to {
+         background-position: 100% 0%;
+     }
+ }

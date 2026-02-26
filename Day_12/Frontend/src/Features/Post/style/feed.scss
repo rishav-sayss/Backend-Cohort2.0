@@ -1,12 +1,12 @@
  .feed-page {
      display: flex;
      justify-content: center;
-     align-items: flex-start;
-
+     align-items:flex-start;
+     padding-inline: 0.75rem;
+    padding-bottom: 1rem;
      .feed {
          max-width: 350px;
          width: 100%;
-         margin-top: 1rem;
 
          .posts {
              width: 100%;
@@ -65,7 +65,7 @@
                      display: flex;
                      gap: 0.75rem;
 
-                     .like{
+                     .like {
                          color: red;
                      }
 

@@ -1,10 +1,10 @@
 let express = require("express")
-let { postcontroller, getpostcontroller, getpostdetailscontroller, likepostcontroller ,getFeedController} = require("../Controler/post.controller")
+let { postcontroller, getpostcontroller, getpostdetailscontroller, likepostcontroller, unlikepostcontroller,getFeedController } = require("../Controler/post.controller")
 let postroute = express.Router()
 let multer = require("multer")
 let upload = multer({ storage: multer.memoryStorage() })
 let identifieruser = require("../Middelwere/auth.middelwere")
-const { post } = require("./auth.routes")
+// const { post } = require("./auth.routes")
 /**
  * POST /api/posts [protected]
  * - req.body = { caption,image-file }
@@ -27,12 +27,18 @@ postroute.get("/details/:postId", identifieruser, getpostdetailscontroller)
  */
 postroute.post("/like/:postId", identifieruser, likepostcontroller)
 
- /**
-  * @route /api/auth/feed
-  * @description get all the post created in db
-  * @access private
-  */
+/**
+ *  * @route POST /api/posts/unlike/:postid
+ * @description unlike a post with the id provided in the request params. 
+ */
+postroute.post("/unlike/:postId", identifieruser, unlikepostcontroller)
 
- postroute.get("/feed",identifieruser,getFeedController)
+/**
+ * @route /api/auth/feed
+ * @description get all the post created in db
+ * @access private
+ */
+
+postroute.get("/feed", identifieruser, getFeedController)
 
 module.exports = postroute
