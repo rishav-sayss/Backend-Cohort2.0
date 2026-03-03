@@ -13,7 +13,6 @@ let userschema = new mongoose.Schema({
     },
     password: {
         type: String,
-        unique: [true, "User name already exist "],
         required: true,
         select:false
     },

@@ -20,9 +20,8 @@ function FeedPage() {
     return (
         <div>
             <main className='feed-page'>
-
+                <Navbar />
                 <div className="feed">
-                    <Navbar />
                     <div className="posts">
 
                         {
@@ -31,6 +30,7 @@ function FeedPage() {
                                     handelunlikepost={handelunlikepost} />
                             })
                         }
+                        
                     </div>
                 </div>
             </main>

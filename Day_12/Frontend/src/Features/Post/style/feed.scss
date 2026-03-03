@@ -1,92 +1,120 @@
- .feed-page {
-     display: flex;
-     justify-content: center;
-     align-items:flex-start;
-     padding-inline: 0.75rem;
-    padding-bottom: 1rem;
-     .feed {
-         max-width: 350px;
-         width: 100%;
+.feed-page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: #000;
+    padding: 1rem;
+}
 
-         .posts {
-             width: 100%;
-             display: flex;
-             flex-direction: column;
-             gap: 1rem;
-         }
+/* Feed Wrapper */
+.feed {
+    width: 100%;
+    display: flex;
+    justify-content: flex-start; // center posts horizontally
+    padding: 1rem;
+}
 
-         .post {
-             width: 100%;
-             display: flex;
-             flex-direction: column;
-             gap: 0.5rem;
-             background-color: #312626;
-             padding-inline: 0.5rem;
-             padding-block: 0.5rem;
-             border-radius: 0.3rem;
+/* Posts Container */
+.posts {
+    max-width: 350px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
 
-             .user {
-                 display: flex;
-                 gap: 0.5rem;
-                 align-items: center;
+/* Single Post */
+.post {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    background-color: #121212;
+    border: 1px solid #262626;
+    border-radius: 10px;
+    padding: 1rem;
+}
 
-                 .image-wrapper {
-                     border-radius: 50%;
-                     display: flex;
-                     justify-content: center;
-                     align-items: center;
-                     border: 2px solid rgba(255, 0, 0, 0);
-                     background: conic-gradient(from 45deg, rgb(255, 102, 0), rgb(105, 0, 128), rgb(255, 102, 0)) border-box;
-                 }
+/* User Section */
+.user {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
 
-                 img {
-                     width: 2rem;
-                     aspect-ratio: 1/1;
-                     border-radius: 50%;
-                     object-fit: cover;
+.image-wrapper {
+    border-radius: 50%;
+    padding: 2px;
+    background: conic-gradient(from 45deg,
+            rgb(255, 102, 0),
+            rgb(105, 0, 128),
+            rgb(255, 102, 0));
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
 
-                 }
-             }
+.user img {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+}
 
-             .bottom {
-                 img {
-                     width: 100%;
-                     border-radius: 0.3rem;
-                     object-fit: cover;
-                 }
-             }
+.user span {
+    color: #fff;
+    font-size: 14px;
+    font-weight: 500;
+}
 
-             .icons {
-                 display: flex;
-                 justify-content: space-between;
+/* Post Image */
+.bottom img {
+    width: 100%;
+    border-radius: 8px;
+    object-fit: cover;
+}
 
-                 .left,
-                 .right {
-                     display: flex;
-                     gap: 0.75rem;
+/* Icons Section */
+.icons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.5rem;
+}
 
-                     .like {
-                         color: red;
-                     }
+.icons .left,
+.icons .right {
+    display: flex;
+    gap: 1rem;
+}
 
-                     svg {
-                         width: 1.7rem;
-                         aspect-ratio: 1/1;
-                         color: white;
-                     }
+.icons button {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+}
 
-                     button {
-                         background-color: transparent;
-                         border: none;
-                         outline: none;
+.icons svg {
+    width: 24px;
+    height: 24px;
+    color: #fff;
+    transition: 0.2s ease;
+}
 
-                     }
-                 }
-             }
+.icons svg:hover {
+    opacity: 0.7;
+}
 
-             p {
-                 font-size: 1.2rem;
-             }
-         }
-     }
- }
+.like {
+    color: #ff3040;
+}
+
+/* Caption */
+.post p {
+    font-size: 14px;
+    color: #eaeaea;
+    line-height: 1.4;
+}
+
+/* Responsive */
+ 

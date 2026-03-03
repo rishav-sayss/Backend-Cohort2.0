@@ -1,5 +1,14 @@
 let followmodal = require("../Modals/follows.modal")
 let usermodal = require("../Modals/user.modal")
+// let postmodal = require("../Modals/post.model")
+// let Imagekit = require("@imagekit/nodejs")
+// let { toFile } = require("@imagekit/nodejs")
+let { ImageKit } = require("@imagekit/nodejs")
+let { toFile } = require("@imagekit/nodejs")
+
+let imagekit = new ImageKit({
+    privateKey: process.env.PRIVATE_IMAGE_KIT
+})
 
 let follow = async (req, res) => {
     let followusername = req.user.username
@@ -106,7 +115,61 @@ let unfollow = async (req, res) => {
     })
 }
 
+let getMyProfile = async (req, res) => {
+    let userId = req.user.id
+    let followersCount = await FollowModel.countDocuments({
+        following: userId
+    })
+
+    let followingCount = await FollowModel.countDocuments({
+        follower: userId
+    })
+    let user = await usermodal.findById({ _id: userId }).select("-email")
+
+    res.status(200).json({
+        user,
+        follows: {
+            followersCount,
+            followingCount
+        }
+    });
+}
+
+let updateMyProfile = async (req, res) => {
+
+    let { bio, username } = req.body;
+
+    let updateData = { bio, username };
+
+    if (req.file) {
+        let uploadedImage = await imagekit.files.upload({
+            file: await toFile(req.file.buffer, "profile"),
+            fileName: `profile-${req.user.id}`,
+            folder: "cohort-2-insta-clone-profiles"
+        });
+
+        updateData.profile = uploadedImage.url; // 👈 Important
+    }
+
+    let updatedUser = await usermodal.findByIdAndUpdate(
+        req.user.id,
+        updateData,
+        { returnDocument: 'after', runValidators: true }
+    ).select("-password");
+
+
+
+    res.status(200).json({
+        message: "Profile updated successfully",
+        user: updatedUser,
+    });
+
+
+};
+
 module.exports = {
     follow,
-    unfollow
+    unfollow,
+    getMyProfile,
+    updateMyProfile
 }
