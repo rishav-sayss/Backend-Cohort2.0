@@ -1,4 +1,5 @@
-const blacklistSchema = require("../schema/blacklist.schema")
+const redish = require("../config/DB/cache")
+// const blacklistSchema = require("../schema/blacklist.schema")
 let jsonwebtoken = require("jsonwebtoken")
 let authMiddleware = async (req, res, next) => {
     let token = req.cookies.token
@@ -9,17 +10,17 @@ let authMiddleware = async (req, res, next) => {
         })
     }
 
-    let isblacklisted = await blacklistSchema.findOne({ token })
-    
+    let isblacklisted = await redish.get(token)
+
     if (isblacklisted) {
         return res.status(401).json({
-            message: "Token expired. Please login again. "
+            message: "Token expired. Please login again."
         })
     }
 
     let decode = null
     try {
-        decode =  jsonwebtoken.verify(token, process.env.JWT_SECRET)
+        decode = jsonwebtoken.verify(token, process.env.JWT_SECRET)
     } catch (error) {
         return res.status(401).json({ message: "Invalid or expired token" })
     }
@@ -29,3 +30,13 @@ let authMiddleware = async (req, res, next) => {
 }
 
 module.exports = authMiddleware
+
+
+
+
+
+
+
+
+
+

@@ -1,8 +1,8 @@
 let Authschema = require("../schema/auth.schema")
 let bcrypt = require("bcrypt")
 let jsonwebtoken = require("jsonwebtoken")
-const blacklistSchema = require("../schema/blacklist.schema")
-
+// const blacklistSchema = require("../schema/blacklist.schema")
+const redish = require("../config/DB/cache")
 
 /**
  * Register Api
@@ -111,7 +111,15 @@ let login = async (req, res) => {
 
 }
 
+let getme = async (req, res) => {
 
+    let response = await Authschema.findById(req.user.id)
+
+    res.status(200).json({
+        message: "User fetched successfully",
+        response
+    })
+}
 let logout = async (req, res) => {
 
     try {
@@ -123,13 +131,11 @@ let logout = async (req, res) => {
             })
         }
 
-        await blacklistSchema.create({ token })
+        res.clearCookie("token")
 
-        res.clearCookie("token", {
-            httpOnly: true,
-            sameSite: "lax",
-            secure: false
-        })
+        // await blacklistSchema.create({ token })
+        await redish.set(token, Date.now().toString(), "EX", 60 * 60)
+
 
         res.status(200).json({
             message: "Logout successfully"
@@ -143,5 +149,6 @@ let logout = async (req, res) => {
 module.exports = {
     register,
     login,
+    getme,
     logout
 }
