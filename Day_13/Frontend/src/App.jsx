@@ -1,15 +1,14 @@
 import { useState } from 'react'
-import './App.css'
 import FaceExpression from './feature/Expression/component/FaceExpression'
-
-
+import "./feature/Shared/styles/global.scss"
+import { RouterProvider } from 'react-router'
+import { routes } from './app.routes'
+import { AuthContextProvider } from './feature/Auth/auth.context'
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <div>
-      <FaceExpression />
-    </div>
+      <AuthContextProvider>
+        <RouterProvider router={routes} />
+      </AuthContextProvider>
   )
 }
 

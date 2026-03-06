@@ -1,0 +1,40 @@
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    label {
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    .required {
+        color: red;
+    }
+
+    .input-wrapper {
+        position: relative;
+    }
+
+    input {
+        width: 100%;
+        padding: 10px 12px;
+        padding-right: 40px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+    }
+
+    .toggle-password {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        font-size: 18px;
+    }
+
+    .error-text {
+        color: red;
+        font-size: 12px;
+    }
+}

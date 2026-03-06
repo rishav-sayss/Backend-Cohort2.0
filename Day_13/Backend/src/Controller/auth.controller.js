@@ -63,6 +63,9 @@ let register = async (req, res) => {
 
 }
 
+/**
+ *  login Api
+ */
 let login = async (req, res) => {
     let { email, password, username } = req.body
 
@@ -111,15 +114,24 @@ let login = async (req, res) => {
 
 }
 
+/**
+ *  getme Api
+ */
+
 let getme = async (req, res) => {
 
-    let response = await Authschema.findById(req.user.id)
+    let user = await Authschema.findById(req.user.id)
 
     res.status(200).json({
         message: "User fetched successfully",
-        response
+        user
     })
 }
+
+/**
+ * Logout Api
+ */
+
 let logout = async (req, res) => {
 
     try {
@@ -145,6 +157,7 @@ let logout = async (req, res) => {
     }
 
 }
+
 
 module.exports = {
     register,
