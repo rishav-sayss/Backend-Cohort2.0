@@ -15,7 +15,6 @@ function Login() {
     e.preventDefault()
     await handellogin({ email, password })
     navigate("/")
-
   }
 
   return (

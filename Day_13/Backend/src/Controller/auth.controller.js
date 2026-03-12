@@ -148,7 +148,6 @@ let logout = async (req, res) => {
         // await blacklistSchema.create({ token })
         await redish.set(token, Date.now().toString(), "EX", 60 * 60)
 
-
         res.status(200).json({
             message: "Logout successfully"
         })
