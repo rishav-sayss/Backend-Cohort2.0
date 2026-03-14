@@ -25,7 +25,7 @@ function Register() {
         <form onSubmit={handelsubmit} >
           <FormGroup value={username} required onChange={(e) => setusername(e.target.value)} label="username" placeholder="Enter your name" />
           <FormGroup value={email} required label="email" onChange={(e) => setemail(e.target.value)} placeholder="Enter your email" />
-          <FormGroup value={password} required label="password" onChange={(e) => setpassword(e.target.value)} placeholder="Enter your password" />
+          <FormGroup value={password} required  type='password' label="password" onChange={(e) => setpassword(e.target.value)} placeholder="Enter your password" />
           <button className='button' >Register</button>
         </form>
         <p>Already have an account?<Link to="/login" >Login</Link> </p>

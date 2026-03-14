@@ -10,7 +10,6 @@ async function uploadfile({ buffer, filename, folder = "" }) {
         fileName: filename,
         folder: folder
     })
-    console.log(file)
     return file
 }
 
