@@ -113,8 +113,38 @@ async function login(req, res) {
 }
 
 
+/**
+ * @desc Get current logged in user's details
+ * @route GET /api/auth/get-me
+ * @access Private
+ */
+async function getme(req, res) {
+    const userId = req.user.id;
+    const user = await usermodel.findById(userId).select("-password");
+
+    if (!user) {
+        return res.status(404).json({
+            message: "User not found",
+            success: false,
+            err: "User not found"
+        })
+    }
+    res.status(200).json({
+        message: "User details fetched successfully",
+        success: true,
+        user
+    })
+
+}
+
+/**
+ * @desc Verify user's email address
+ * @route GET /api/auth/verify-email
+ * @access Public
+ * @query { token }
+ */
 async function verifyEmail(req, res) {
-    let token = req.query
+    let token = req.query.token
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const user = await usermodel.findOne({ email: decoded.email });
@@ -130,13 +160,13 @@ async function verifyEmail(req, res) {
         await user.save();
 
         const html =
-        `
+            `
         <h1>Email Verified Successfully!</h1>
         <p>Your email has been verified. You can now log in to your account.</p>
         <a href="http://localhost:3000/login">Go to Login</a>
 
     `
-    return res.send(html);
+        return res.send(html);
 
     } catch (err) {
         return res.status(400).json({
@@ -148,4 +178,6 @@ async function verifyEmail(req, res) {
 }
 
 
-module.exports = { login, register, verifyEmail }
+
+
+module.exports = { login, register, verifyEmail ,getme}

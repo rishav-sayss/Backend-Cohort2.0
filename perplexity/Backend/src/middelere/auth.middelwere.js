@@ -3,7 +3,7 @@ let jwt = require("jsonwebtoken")
  function authUser(req, res, next) {
 
     const token = req.cookies.token;
-
+    
     if (!token) {
         return res.status(401).json({
             message: "Unauthorized",
@@ -15,7 +15,7 @@ let jwt = require("jsonwebtoken")
     try {
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
+        console.log(decoded)
         req.user = decoded;
 
         next();
