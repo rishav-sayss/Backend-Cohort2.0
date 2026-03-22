@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router'
 import { Eye, EyeOff } from 'lucide-react'
+import { useauth } from "../hooks/useauth"
 function Register() {
   const [showPassword, setShowPassword] = useState(false)
 
@@ -8,15 +9,18 @@ function Register() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
-  const handleSubmit = (e) => {
+  let { Register } = useauth()
+  
+  const handleSubmit = async (e) => {
     e.preventDefault()
+
     const payload = {
       username,
       email,
       password,
     }
+    await Register(payload)
 
-    console.log('Register payload:', payload)
   }
 
   return (

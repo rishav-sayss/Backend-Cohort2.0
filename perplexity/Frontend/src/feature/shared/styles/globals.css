@@ -1,0 +1,153 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import "tailwindcss";
+
+@layer base {
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply bg-black text-white;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color-scheme: dark;
+  }
+
+  /* Scrollbar Styling */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-black;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gray-700 rounded;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-600;
+  }
+
+  /* Selection Color */
+  ::selection {
+    @apply bg-purple-600 text-white;
+  }
+
+  ::-moz-selection {
+    @apply bg-purple-600 text-white;
+  }
+}
+
+@layer utilities {
+  /* Input Placeholder styling */
+  input::placeholder,
+  textarea::placeholder {
+    @apply text-gray-500;
+  }
+
+  /* Focus Ring */
+  :focus-visible {
+    @apply outline-none ring-2 ring-purple-600 ring-offset-2 ring-offset-black;
+  }
+
+  /* Animation utilities */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideInDown {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideInLeft {
+    from {
+      opacity: 0;
+      transform: translateX(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes slideInRight {
+    from {
+      opacity: 0;
+      transform: translateX(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes textGlow {
+    0%, 100% {
+      text-shadow: 0 0 10px rgba(168, 85, 247, 0.5);
+    }
+    50% {
+      text-shadow: 0 0 20px rgba(168, 85, 247, 0.8);
+    }
+  }
+
+  @keyframes bounce {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  .fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+
+  .slide-in-up {
+    animation: slideInUp 0.5s ease-in-out;
+  }
+
+  .slide-in-down {
+    animation: slideInDown 0.5s ease-in-out;
+  }
+
+  .slide-in-left {
+    animation: slideInLeft 0.5s ease-in-out;
+  }
+
+  .slide-in-right {
+    animation: slideInRight 0.5s ease-in-out;
+  }
+
+  .text-glow {
+    animation: textGlow 2s ease-in-out infinite;
+  }
+
+  .bounce-text {
+    animation: bounce 2s ease-in-out infinite;
+  }
+}
