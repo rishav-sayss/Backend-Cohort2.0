@@ -6,8 +6,8 @@ const model = new ChatGoogleGenerativeAI({
 });
 
 exports.testapi = () => {
-    model.invoke("who is the presedent and prime minister of india").then((response) => {
-        console.log(response.text)
+    model.invoke("").then((response) => {
+        
     })
 }
 

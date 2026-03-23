@@ -3,7 +3,8 @@ import Login from "../feature/auth/pages/Login"
 import Register from "../feature/auth/pages/Register"
 import Protected from "../feature/auth/component/protected"
 import HomePage from "../pages/HomePage"
-import Chat from "../feature/auth/pages/Chat"
+import Dashboard from "../feature/chats/pages/Dashboard"
+
 
 export let router = createBrowserRouter([
     {
@@ -21,7 +22,7 @@ export let router = createBrowserRouter([
     {
         path: "/dashboard",
         element: <Protected>
-            <Chat/>
+            <Dashboard/>
         </Protected>
     },
 
