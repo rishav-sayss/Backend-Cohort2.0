@@ -8,12 +8,12 @@ export const Navbar = () => {
 
   const handleLoginClick = () => {
     navigate('/login');
-    console.log("login")
+     
   };
 
   const handleRegisterClick = () => {
     navigate('/register');
-    console.log("login")
+     
   };
 
   return (

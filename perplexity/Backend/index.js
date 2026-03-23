@@ -100,7 +100,7 @@ async function startChat() {
 
         const lastMessage = response.messages[response.messages.length - 1];
 
-        console.log(`\x1b[34m[AI]\x1b[0m ${lastMessage.content}`);
+        // console.log(`\x1b[34m[AI]\x1b[0m ${lastMessage.content}`);
 
         messages.push(lastMessage);
     }

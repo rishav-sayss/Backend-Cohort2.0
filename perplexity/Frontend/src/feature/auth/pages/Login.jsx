@@ -20,7 +20,8 @@ function Login() {
       password,
     }
     await handleLogin(payload)
-    naviagte("/")
+    naviagte("/dashboard")
+
   }
 
   return (

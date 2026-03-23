@@ -9,8 +9,8 @@ function Register() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
-  let { Register } = useauth()
-  
+  let { handelregister } = useauth()
+
   const handleSubmit = async (e) => {
     e.preventDefault()
 
@@ -19,8 +19,10 @@ function Register() {
       email,
       password,
     }
-    await Register(payload)
-
+    await handelregister(payload)
+    setUsername("")
+    setEmail("")
+    setPassword("")
   }
 
   return (

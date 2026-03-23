@@ -1,11 +1,14 @@
 import { useDispatch } from "react-redux"
 import { register, login, getMe } from "../services/auth.api"
 import { setLoading, setuser, setError } from "../auth.slice"
+
+
+
 export function useauth() {
 
     const dispatch = useDispatch()
 
-    async function handelregister() {
+    async function handelregister({ email, username, password }) {
         try {
             dispatch(setLoading(true))
             let data = await register({ email, username, password })
@@ -20,6 +23,7 @@ export function useauth() {
     async function handleLogin({ email, password }) {
         try {
             dispatch(setLoading(true))
+           
             const data = await login({ email, password })
             dispatch(setuser(data.user))
         } catch (err) {
@@ -33,7 +37,7 @@ export function useauth() {
         try {
             dispatch(setLoading(true))
             const data = await getMe()
-            dispatch(setUser(data.user))
+            dispatch(setuser(data.user))
         } catch (err) {
             dispatch(setError(err.response?.data?.message || "Failed to fetch user data"))
         } finally {

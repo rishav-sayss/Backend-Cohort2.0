@@ -161,9 +161,45 @@ async function verifyEmail(req, res) {
 
         const html =
             `
-        <h1>Email Verified Successfully!</h1>
-        <p>Your email has been verified. You can now log in to your account.</p>
-        <a href="http://localhost:3000/login">Go to Login</a>
+ <!DOCTYPE html>
+<html>
+<head>
+  <title>Email Verified</title>
+  <style>
+    body {
+      background: #0f0f0f;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      font-family: Arial, sans-serif;
+    }
+    .card {
+      background: #1a1a1a;
+      padding: 30px;
+      border-radius: 10px;
+      text-align: center;
+    }
+    a {
+      display: inline-block;
+      margin-top: 15px;
+      padding: 10px 20px;
+      background: white;
+      color: black;
+      text-decoration: none;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>✅ Email Verified Successfully!</h1>
+    <p>You can now login to your account.</p>
+    <a href="http://localhost:5173/login">Go to Login</a>
+  </div>
+</body>
+</html>
 
     `
         return res.send(html);
@@ -180,4 +216,4 @@ async function verifyEmail(req, res) {
 
 
 
-module.exports = { login, register, verifyEmail ,getme}
+module.exports = { login, register, verifyEmail, getme }
