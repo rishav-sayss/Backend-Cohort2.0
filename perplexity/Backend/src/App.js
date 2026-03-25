@@ -1,8 +1,9 @@
 const express = require("express");
 let authroute = require("./routes/auth.routes")
 let cors = require("cors")
-const app = express();
-const cookieParser = require("cookie-parser");
+let app = express();
+let cookieParser = require("cookie-parser");
+let chatRoute = require("./routes/chat.routes")
 
 app.use(cookieParser());
 // Middleware
@@ -13,5 +14,6 @@ app.use(cors({
     methods: ["GET", "POST", "PUT", "DELETE"],
 }))
 app.use("/api/auth", authroute)
+app.use("/api/chats",chatRoute)
 
 module.exports = app;
