@@ -1,8 +1,8 @@
 let { ChatGoogleGenerativeAI } = require("@langchain/google-genai")
 let { ChatMistralAI } = require("@langchain/mistralai")
-let { HumanMessage, SystemMessage } = require("langchain")
+let { HumanMessage, SystemMessage, AIMessage } = require("langchain")
 
-const geminimodel = new ChatGoogleGenerativeAI({
+const geminiModel = new ChatGoogleGenerativeAI({
     model: "gemini-2.5-flash-lite",
     apiKey: process.env.GEMINI_API_KEY
 });
@@ -14,12 +14,16 @@ const mistralModel = new ChatMistralAI({
 
 
 async function generateResponse(messages) {
-    const response = await geminimodel.invoke([
-        new HumanMessage(messages)
-    ])
 
-    return response.text
-
+    const response = await geminiModel.invoke(messages.map(msg => {
+        if (msg.role == "user") {
+            return new HumanMessage(msg.content)
+        } else if (msg.role == "ai") {
+            return new AIMessage(msg.content)
+        }
+    }));
+    
+    return response.text;
 }
 
 async function generateChatTitle(message) {
