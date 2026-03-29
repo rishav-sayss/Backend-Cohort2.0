@@ -31,8 +31,7 @@ export default {
         'glow-cyan': '0 0 20px rgba(6, 182, 212, 0.5)',
       },
       animation: {
-        float: 'float 3s ease-in-out infinite',
-        glow: 'glow 2s ease-in-out infinite',
+        'spin-slow': 'spin 8s linear infinite',
       },
       keyframes: {
         float: {
@@ -58,3 +57,4 @@ export default {
   },
   plugins: [],
 }
+

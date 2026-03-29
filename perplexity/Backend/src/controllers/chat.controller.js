@@ -24,7 +24,7 @@ let sendmessage = async (req, res) => {
         role: "user"
     })
 
-    const messages = await messageModel.find({ chat: chatId || chat._id })
+    const messages = await messageModel.find({ chat: chatId || chat._id }) //this side changement
 
     const result = await generateResponse(messages);
 
@@ -56,7 +56,7 @@ let getchats = async (req, res) => {
 
 let getmessages = async (req, res) => {
     let { chatId } = req.params
-    
+
 
     let chat = chatModel.findOne({
         _id: chatId,
@@ -80,11 +80,11 @@ let getmessages = async (req, res) => {
 
 }
 
- async function deleteChat(req, res) {
+async function deleteChat(req, res) {
 
     const { chatId } = req.params;
 
-    const chat = await chatModel.findOneAndDelete({
+        await chatModel.findOneAndDelete({
         _id: chatId,
         user: req.user.id
     })
@@ -93,15 +93,9 @@ let getmessages = async (req, res) => {
         chat: chatId
     })
 
-    if (!chat) {
-        return res.status(404).json({
-            message: "Chat not found"
-        })
-    }
-
     res.status(200).json({
         message: "Chat deleted successfully"
     })
 }
 
-module.exports = { sendmessage, getchats ,getmessages,deleteChat}
+module.exports = { sendmessage, getchats, getmessages, deleteChat }

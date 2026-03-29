@@ -1,15 +1,159 @@
-import React, { useEffect } from 'react'
-import { usechat } from '../hooks/chats'
-function Dashboard() {
-    let chat = usechat()
-    useEffect(() => {
-        chat.initializeSocketConnection()
-    }, [])
-    return (
-        <div>
-            <h1>it is Dashboard</h1>
-        </div>
-    )
-}
+import React, { useEffect, useState } from 'react'
+import ReactMarkdown from 'react-markdown'
+import { useSelector, useDispatch } from 'react-redux'
+import { useChat } from '../hooks/chats'
+import remarkGfm from 'remark-gfm'
+import { createNewChat, deleteChat, setCurrentChatId, updateChatTitle } from '../chats.slice'
+import { Plus, Trash2 } from 'lucide-react'
 
+const Dashboard = () => {
+  const chat = useChat()
+  const dispatch = useDispatch()
+  const [chatInput, setChatInput] = useState('')
+
+  const chats = useSelector((state) => state.chat.chats)
+  const currentChatId = useSelector((state) => state.chat.currentChatId)
+
+  useEffect(() => {
+    chat.initializeSocketConnection()
+    chat.handleGetChats()
+  }, [])
+
+  const handleSubmitMessage = (event) => {
+    event.preventDefault()
+
+    const trimmedMessage = chatInput.trim()
+    if (!trimmedMessage) {
+      return
+    }
+
+    // Generate title from first message if chat title is still "New Chat"
+    const currentChat = chats[currentChatId]
+    if (currentChat?.title === 'New Chat' && trimmedMessage.length > 0) {
+      const generatedTitle = trimmedMessage.substring(0, 30) + (trimmedMessage.length > 30 ? '...' : '')
+      dispatch(updateChatTitle({ chatId: currentChatId, title: generatedTitle }))
+    }
+
+    chat.handleSendMessage({ message: trimmedMessage, chatId: currentChatId })
+
+    setChatInput('')
+  }
+
+  const openChat = (chatId) => {
+    dispatch(setCurrentChatId(chatId))
+    chat.handleOpenChat(chatId, chats)
+  }
+
+  const handleNewChat = ( ) => {
+    const chatId = `chat_${Date.now()}`
+    const title = 'New Chat'
+    dispatch(createNewChat({ chatId, title }))
+    dispatch(setCurrentChatId(chatId))
+  }
+
+  const handleDeleteChat = (e, chatId) => {
+    e.stopPropagation()
+    dispatch(deleteChat({ chatId }))
+  }
+
+  return (
+    <main className='min-h-screen w-full bg-[#07090f] p-3 text-white md:p-5'>
+      <section className='mx-auto flex h-[calc(100vh-1.5rem)] w-full gap-4 rounded-3xl border   p-1 md:h-[calc(100vh-2.5rem)] md:gap-6 md:p-1 border-none'>
+        <aside className='hidden h-full w-72 shrink-0 rounded-3xl border  bg-[#080b12] p-4 md:flex md:flex-col'>
+          <div className='mb-5 flex items-center'>
+            <h1 className='text-3xl font-semibold tracking-tight'>Perplexity</h1>
+          </div>
+
+          <div className='mb-2.5 flex items-center px-1.5 py-1.5 rounded-2xl hover:bg-white/10 cursor-pointer' >
+            <Plus className=' bg-[#2B2A29] px-0.5 py-1 rounded-full' size={24} />
+            <button
+              onClick={handleNewChat}
+              className='rounded-lg  border-white/60 bg-transparent p-2 text-white transition cursor-pointer  hover:border-white'
+              title='New Chat'
+            >
+              New Chat
+            </button>
+          </div>
+          <div className='space-y-2'>
+            {Object.values(chats).map((chat) => (
+              <div
+                key={chat.id}
+                className='group flex items-center gap-2'
+              >
+                <button
+                  onClick={() => { openChat(chat.id) }}
+                  type='button'
+                  className='flex-1 cursor-pointer rounded-xl border border-white/60 bg-transparent px-3 py-2 text-left text-base font-medium text-white/90 transition hover:border-white hover:text-white'
+                >
+                  {chat.title}
+                </button>
+                <button
+                  onClick={(e) => handleDeleteChat(e, chat.id)}
+                  type='button'
+                  className='rounded-lg border border-white/60 bg-transparent p-2 text-white/90 transition hover:bg-red-500/20 hover:border-red-500 hover:text-red-400 opacity-0 group-hover:opacity-100'
+                  title='Delete Chat'
+                >
+                  <Trash2 size={18} />
+                </button>
+              </div>
+            ))}
+          </div>
+        </aside>
+
+        <section className='relative max-w-3/5 mx-auto flex h-full min-w-0 flex-1 flex-col gap-4'>
+
+          <div className='messages flex-1 space-y-3 overflow-y-auto pr-1 pb-30'>
+            {chats[currentChatId]?.messages.map((message, index) => (
+              <div
+                key={index}
+                className={`max-w-[82%] w-fit rounded-2xl px-4 py-3 text-sm md:text-base ${message.role === 'user'
+                  ? 'ml-auto rounded-br-none bg-white/12 text-white'
+                  : 'mr-auto border-none text-white/90'
+                  }`}
+              >
+                {message.role === 'user' ? (
+                  <p>{message.content}</p>
+                ) : (
+                  <ReactMarkdown
+                    components={{
+                      p: ({ children }) => <p className='mb-2 last:mb-0'>{children}</p>,
+                      ul: ({ children }) => <ul className='mb-2 list-disc pl-5'>{children}</ul>,
+                      ol: ({ children }) => <ol className='mb-2 list-decimal pl-5'>{children}</ol>,
+                      code: ({ children }) => <code className='rounded bg-white/10 px-1 py-0.5'>{children}</code>,
+                      pre: ({ children }) => <pre className='mb-2 overflow-x-auto rounded-xl bg-black/30 p-3'>{children}</pre>
+                    }}
+                    remarkPlugins={[remarkGfm]}
+                  >
+                    {message.content}
+                  </ReactMarkdown>
+                )}
+              </div>
+            ))}
+          </div>
+
+          <footer className='rounded-3xl w-full absolute bottom-2 border border-white/60 bg-[#080b12] p-4 md:p-5'>
+            <form onSubmit={handleSubmitMessage} className='flex flex-col gap-3 md:flex-row'>
+              <input
+                type='text'
+                value={chatInput}
+                onChange={(event) => setChatInput(event.target.value)}
+                placeholder='Type your message...'
+                className='w-full rounded-2xl border border-white/50 bg-transparent px-4 py-3 text-lg text-white outline-none transition placeholder:text-white/45 focus:border-white/90'
+              />
+              <button
+                type='submit'
+                disabled={!chatInput.trim()}
+                className='rounded-2xl border border-white/60 px-6 py-3 text-lg font-semibold text-white transition hover:bg-white/10 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50'
+              >
+                Send
+              </button>
+            </form>
+          </footer>
+        </section>
+
+      </section>
+    </main>
+  )
+
+}
 export default Dashboard
