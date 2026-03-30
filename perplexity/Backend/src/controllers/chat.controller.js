@@ -126,19 +126,22 @@ let sendmessageStream = async (req, res) => {
             role: msg.role === 'ai' ? 'assistant' : msg.role // Normalize role
         }))
 
-        // Set proper SSE headers for streaming
-        res.setHeader('Content-Type', 'text/event-stream')
-        res.setHeader('Cache-Control', 'no-cache')
-        res.setHeader('Connection', 'keep-alive')
-        // CORS is handled by app-level middleware, don't override here
+        // Set plain text chunked streaming headers (no SSE / no JSON wrapper)
+        res.setHeader('Content-Type', 'text/plain; charset=utf-8')
+        res.setHeader('Transfer-Encoding', 'chunked')
+        // Disable buffering proxies (useful when behind nginx)
+        res.setHeader('X-Accel-Buffering', 'no')
+        // Flush headers so client can start reading immediately
+        if (res.flushHeaders) res.flushHeaders()
 
-        // Send initialization event with chat and message metadata
-        res.write(`data: ${JSON.stringify({ 
-            type: 'init',
-            chat,
-            messageId: aiMessage._id.toString(),
-            timestamp: new Date().toISOString()
-        })}\n\n`)
+        // Send a small metadata line first (plain text) so frontend can update chat title/id
+        try {
+            const meta = JSON.stringify({ chat, messageId: aiMessage._id.toString() })
+            // Prefix with a reserved marker so frontend can parse without requiring SSE/JSON response
+            res.write(`__META__${meta}\n`)
+        } catch (e) {
+            // ignore metadata write failures
+        }
 
         let fullContent = '';
         let tokenCount = 0;
@@ -149,12 +152,12 @@ let sendmessageStream = async (req, res) => {
          */
         const onToken = (token) => {
             tokenCount++;
-            // Send each token as a separate SSE event for maximum responsiveness
-            res.write(`data: ${JSON.stringify({ 
-                type: 'chunk',
-                content: token,
-                tokenIndex: tokenCount
-            })}\n\n`)
+            try {
+                // Write raw token bytes to client immediately (no JSON wrapping)
+                res.write(token)
+            } catch (err) {
+                // If client disconnected, stop streaming silently
+            }
         }
 
         // Stream tokens from AI service
@@ -171,24 +174,22 @@ let sendmessageStream = async (req, res) => {
             tokenCount: tokenCount
         })
 
-        // Send completion event with final stats
-        res.write(`data: ${JSON.stringify({ 
-            type: 'complete',
-            content: fullContent,
-            totalTokens: tokenCount,
-            timestamp: new Date().toISOString()
-        })}\n\n`)
-
         // Properly close the response stream
-        res.end()
+        try {
+            res.end()
+        } catch (err) {
+            // ignore
+        }
     } catch (error) {
-        // Send error event before closing
-        res.write(`data: ${JSON.stringify({ 
-            type: 'error',
-            error: error.message,
-            timestamp: new Date().toISOString()
-        })}\n\n`)
-        res.end()
+        // If headers were not sent, return JSON error
+        if (!res.headersSent) {
+            return res.status(500).json({ error: error.message })
+        }
+
+        // Otherwise attempt to end the stream
+        try {
+            res.end()
+        } catch (e) {}
     }
 }
 

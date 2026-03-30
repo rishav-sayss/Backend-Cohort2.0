@@ -12,15 +12,30 @@ const chatSlice = createSlice({
     reducers: {
         createNewChat: (state, action) => {
             const { chatId, title } = action.payload
-            state.chats[ chatId ] = {
-                id: chatId,
-                title,
-                messages: [],
-                lastUpdated: new Date().toISOString(),
+            // If chat already exists, don't overwrite messages — just update title
+            if (state.chats[chatId]) {
+                state.chats[chatId].title = title
+                state.chats[chatId].lastUpdated = new Date().toISOString()
+            } else {
+                state.chats[ chatId ] = {
+                    id: chatId,
+                    title,
+                    messages: [],
+                    lastUpdated: new Date().toISOString(),
+                }
             }
         },
         addNewMessage: (state, action) => {
             const { chatId, content, role, id, isLoading, error } = action.payload
+            // ✅ FIXED: Ensure chat exists before adding message
+            if (!state.chats[chatId]) {
+                state.chats[chatId] = {
+                    id: chatId,
+                    title: 'New Chat',
+                    messages: [],
+                    lastUpdated: new Date().toISOString(),
+                }
+            }
             state.chats[ chatId ].messages.push({ 
                 id: id || `${Date.now()}-${Math.random()}`,
                 content, 
@@ -35,6 +50,7 @@ const chatSlice = createSlice({
         updateMessage: (state, action) => {
             const { chatId, messageId, content, isLoading, error, tokenCount, append, replace } = action.payload
             const chat = state.chats[chatId]
+            // ✅ FIXED: Safely handle missing chats
             if (chat) {
                 const message = chat.messages.find(m => m.id === messageId)
                 if (message) {
@@ -62,6 +78,15 @@ const chatSlice = createSlice({
         },
         addMessages: (state, action) => {
             const { chatId, messages } = action.payload
+            // ✅ FIXED: Ensure chat exists before adding messages
+            if (!state.chats[chatId]) {
+                state.chats[chatId] = {
+                    id: chatId,
+                    title: 'New Chat',
+                    messages: [],
+                    lastUpdated: new Date().toISOString(),
+                }
+            }
             // ✅ FIXED: Map MongoDB _id to id, add missing properties
             const formattedMessages = messages.map(msg => ({
                 id: msg.id || msg._id || `${Date.now()}-${Math.random()}`,

@@ -11,7 +11,7 @@
  * - Type-safe event parsing
  */
 
-export const streamMessage = async ({ message, chatId, onChunk, onComplete, onError }) => {
+export const streamMessage = async ({ message, chatId, onChunk, onComplete, onError, onMeta }) => {
     let reader = null;
     let controller = null;
 
@@ -19,89 +19,86 @@ export const streamMessage = async ({ message, chatId, onChunk, onComplete, onEr
         // Create abort controller for stream cleanup
         controller = new AbortController();
 
-        const body = JSON.stringify({
-            message,
-            chat: chatId
-        })
-        
-        // Fetch SSE stream with streaming enabled
+        const body = JSON.stringify({ message, chat: chatId })
+
         const response = await fetch('http://localhost:3000/api/chats/message/stream', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            credentials: 'include', // Include JWT cookie
+            credentials: 'include',
             body,
             signal: controller.signal
         })
 
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.error || `Stream failed: ${response.statusText}`);
+            // Try parsing JSON error if present
+            let errText = response.statusText
+            try {
+                const errJson = await response.json()
+                errText = errJson.error || errJson.message || errText
+            } catch (e) {}
+            throw new Error(errText)
         }
 
-        // Initialize stream reader for token-by-token processing
-        reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = '';
-        let fullText = '';
-        let initialization = null;
-        let tokenCount = 0;
+        // Read raw text stream (plain chunked text)
+        reader = response.body.getReader()
+        const decoder = new TextDecoder()
+        let fullText = ''
+        let tokenIndex = 0
+        let buffer = ''
+        let metaParsed = false
 
-        /**
-         * Main streaming loop
-         * Processes each chunk from the SSE stream
-         */
         while (true) {
-            const { done, value } = await reader.read();
-            
-            if (done) {
-                // Handle any remaining data in buffer
-                if (buffer.trim().startsWith('data: ')) {
-                    try {
-                        const data = JSON.parse(buffer.slice(6));
-                        handleStreamEvent(data, initialization, { onChunk, onComplete, onError }, fullText);
-                    } catch (e) {
-                        // Silently ignore buffer parsing errors at end of stream
-                    }
-                }
-                break;
-            }
+            const { done, value } = await reader.read()
+            if (done) break
 
-            // Decode chunk and add to buffer
-            buffer += decoder.decode(value, { stream: true });
-            const lines = buffer.split('\n');
+            const chunkText = decoder.decode(value, { stream: true })
+            if (!chunkText) continue
 
-            // Keep incomplete line in buffer for next iteration
-            buffer = lines[lines.length - 1];
+            buffer += chunkText
 
-            // Process complete lines (SSE format: data: {...}\n\n)
-            for (let i = 0; i < lines.length - 1; i++) {
-                const line = lines[i];
-                
-                if (line.startsWith('data: ')) {
-                    try {
-                        const data = JSON.parse(line.slice(6));
-                        handleStreamEvent(
-                            data, 
-                            initialization, 
-                            { onChunk, onComplete, onError }, 
-                            fullText
-                        );
-                        
-                        // Track state updates
-                        if (data.type === 'init') {
-                            initialization = data;
-                        } else if (data.type === 'chunk') {
-                            fullText += data.content;
-                            tokenCount++;
+            // If metadata not yet parsed, look for metadata line terminated by a newline
+            if (!metaParsed) {
+                if (buffer.startsWith('__META__')) {
+                    const newlineIdx = buffer.indexOf('\n')
+                    if (newlineIdx !== -1) {
+                        const metaJson = buffer.slice('__META__'.length, newlineIdx)
+                        try {
+                            const meta = JSON.parse(metaJson)
+                            if (onMeta) {
+                                try { onMeta(meta) } catch (e) {}
+                            }
+                        } catch (e) {
+                            // ignore parse errors
                         }
-                    } catch (e) {
-                        // Log but don't fail on parsing errors
-                        // Continue processing other lines
+                        // Remove metadata line from buffer and continue processing remainder as first token chunk
+                        buffer = buffer.slice(newlineIdx + 1)
+                        metaParsed = true
+                    } else {
+                        // wait for more data to complete metadata line
+                        continue
                     }
+                } else {
+                    // No metadata prefix found; treat buffer as normal content
+                    metaParsed = true
                 }
             }
+
+            // Remaining buffer is actual token content
+            if (buffer.length > 0) {
+                tokenIndex++
+                fullText += buffer
+                if (onChunk) {
+                    try { onChunk({ chunk: buffer, fullContent: fullText, messageId: null, tokenIndex }) } catch (e) {}
+                }
+                buffer = ''
+            }
+        }
+
+        // Stream completed
+        if (onComplete) {
+            try { onComplete({ content: fullText, chat: null, messageId: null, totalTokens: tokenIndex }) } catch (e) {}
         }
 
     } catch (error) {

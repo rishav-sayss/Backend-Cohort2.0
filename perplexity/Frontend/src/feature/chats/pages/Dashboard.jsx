@@ -58,31 +58,48 @@ const Dashboard = () => {
   }
 
   // Helper function to send a message using STREAMING
+  // ✅ FIXED: Proper chatId handling to prevent unnecessary chat creation
   const sendMessage = (message) => {
     const trimmedMessage = message.trim()
     if (!trimmedMessage) {
       return
     }
 
-    // If no current chat, create one first
+    // ✅ CRITICAL: Check if we already have a valid currentChatId
     let activeChatId = currentChatId
+
+    // ✅ Only create a NEW chat if:
+    // 1. currentChatId is null or undefined, AND
+    // 2. There are no existing chats to use
     if (!activeChatId) {
-      activeChatId = `chat_${Date.now()}`
-      const title = 'New Chat'
-      dispatch(createNewChat({ chatId: activeChatId, title }))
-      dispatch(setCurrentChatId(activeChatId))
+      // Check if we have any existing chats in Redux
+      const existingChats = Object.values(chats || {})
+      
+      if (existingChats.length > 0) {
+        // Reuse the first available chat
+        activeChatId = existingChats[0].id
+        dispatch(setCurrentChatId(activeChatId))
+      } else {
+        // Only create a new temp chat if NO chats exist at all
+        activeChatId = `chat_${Date.now()}`
+        const title = 'New Chat'
+        dispatch(createNewChat({ chatId: activeChatId, title }))
+        dispatch(setCurrentChatId(activeChatId))
+      }
     }
 
     // Clear input immediately for better UX
     setChatInput('')
 
-    // Send message through streaming hook
+    // ✅ Send message using the determined chatId
     chat.handleSendMessageStream({ 
       message: trimmedMessage, 
       chatId: activeChatId,
       onSuccess: (response) => {
+        // Message sent successfully
       },
       onError: (error) => {
+        // Error is handled in the hook
       }
     })
   }

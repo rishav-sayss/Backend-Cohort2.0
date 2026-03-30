@@ -1,7 +1,7 @@
  import { initializeSocketConnection } from "../services/chat.scokets";
 import { sendMessage, getChats, getMessages, deleteChat as deleteChatAPI } from "../services/chat.api";
 import { streamMessage } from "../services/chat.stream";
-import { setChats, setCurrentChatId, setError, setLoading, createNewChat, addNewMessage, addMessages, deleteChat, updateMessage } from "../chats.slice";
+import { setChats, setCurrentChatId, setError, setLoading, createNewChat, addNewMessage, addMessages, deleteChat, updateMessage, updateChatTitle } from "../chats.slice";
 import { useDispatch, useSelector } from "react-redux";
 
 
@@ -35,10 +35,12 @@ export const useChat = () => {
             }
             
             // Create the real chat in Redux if it doesn't exist
-            dispatch(createNewChat({
-                chatId: realChatId,
-                title: chat.title || 'New Chat',
-            }))
+            if (!chats[realChatId]) {
+                dispatch(createNewChat({ chatId: realChatId, title: chat.title || 'New Chat' }))
+            } else if (chat.title) {
+                // If chat already exists, ensure title is up-to-date
+                dispatch(updateChatTitle({ chatId: realChatId, title: chat.title }))
+            }
             
             // Add user message
             dispatch(addNewMessage({
@@ -77,49 +79,77 @@ export const useChat = () => {
         }
     }
 
-    // ✅ OPTIMIZED: Token-by-token streaming with minimal re-renders
+    // ✅ OPTIMIZED: Token-by-token streaming with proper chat ID handling
     async function handleSendMessageStream({ message, chatId, onSuccess, onError }) {
         dispatch(setLoading(true))
         try {
-            // Determine the actual chat ID
+            // ✅ CRITICAL: Only use temp ID if chatId is truly undefined/null
+            // Do NOT use temp ID if we have any existing chat ID (even temporary ones)
+            const isValidObjectId = chatId && typeof chatId === 'string' && chatId.match(/^[0-9a-fA-F]{24}$/)
+            const isTempId = chatId && typeof chatId === 'string' && chatId.startsWith('chat_')
+            
+            // Determine the actual chat ID to use for this send
             let activeChatId = chatId
-            if (!chatId || !chatId.match(/^[0-9a-fA-F]{24}$/)) {
-                activeChatId = chatId || `chat_${Date.now()}`
+            let isNewChat = false
+            
+            // Only create temp ID if NO chatId exists at all
+            if (!chatId) {
+                activeChatId = `chat_${Date.now()}`
+                isNewChat = true
+            } else if (!isValidObjectId && !isTempId) {
+                // Invalid ID format - create new temp ID
+                activeChatId = `chat_${Date.now()}`
+                isNewChat = true
             }
 
             let realChatId = activeChatId
             let aiMessageId = null
+            let hasMigrated = false
 
-            // ✅ STEP 1: Create/ensure chat exists in Redux
-            if (!chats[realChatId]) {
+            // ✅ Track messages we add to temp chat so we can move them later
+            const userMessageId = `user_${Date.now()}_${Math.random()}`
+            const aiMessagePlaceholderId = `ai_${Date.now()}_${Math.random()}`
+            const messagesAddedToTemp = []
+
+            // ✅ Only create temp chat in Redux if this is a new chat
+            if (isNewChat && !chats[activeChatId]) {
                 dispatch(createNewChat({
-                    chatId: realChatId,
+                    chatId: activeChatId,
                     title: 'New Chat'
                 }))
             }
 
-            // ✅ STEP 2: Add user message IMMEDIATELY (optimistic UI)
-            dispatch(addNewMessage({
-                chatId: realChatId,
+            // ✅ Add user message to current (or temp) chat
+            const userMsg = {
+                id: userMessageId,
                 content: message,
                 role: "user",
-                id: `user_${Date.now()}_${Math.random()}`
+                timestamp: new Date().toISOString()
+            }
+            messagesAddedToTemp.push(userMsg)
+            dispatch(addNewMessage({
+                chatId: activeChatId,
+                ...userMsg
             }))
 
-            // ✅ STEP 3: Create AI message placeholder with loading state IMMEDIATELY
-            const aiMessagePlaceholderId = `ai_${Date.now()}_${Math.random()}`
-            dispatch(addNewMessage({
-                chatId: realChatId,
+            // ✅ Create AI message placeholder
+            const aiPlaceholder = {
+                id: aiMessagePlaceholderId,
                 content: '',
                 role: "assistant",
-                id: aiMessagePlaceholderId,
+                timestamp: new Date().toISOString(),
                 isLoading: true,
                 tokenCount: 0
+            }
+            messagesAddedToTemp.push(aiPlaceholder)
+            dispatch(addNewMessage({
+                chatId: activeChatId,
+                ...aiPlaceholder
             }))
 
-            // ✅ STEP 4: Start streaming and update message as tokens arrive
-            let tokenBuffer = ''; // Buffer for micro-batching tokens
-            let bufferTimeout = null;
+            // ✅ Token buffering for streaming
+            let tokenBuffer = ''
+            let bufferTimeout = null
             
             const flushTokenBuffer = () => {
                 if (tokenBuffer) {
@@ -128,102 +158,112 @@ export const useChat = () => {
                         messageId: aiMessageId || aiMessagePlaceholderId,
                         content: tokenBuffer,
                         isLoading: true,
-                        append: true // Append to existing content, don't replace
+                        append: true
                     }))
-                    tokenBuffer = '';
+                    tokenBuffer = ''
                 }
-            };
+            }
 
             await streamMessage({
                 message,
                 chatId: activeChatId,
                 
-                onChunk: ({ chunk, fullContent, messageId: msgId, tokenIndex }) => {
-                    // Update with the backend message ID when available
-                    if (msgId && !aiMessageId) {
-                        aiMessageId = msgId;
+                // Handle metadata - THIS is where we learn the real chat ID from backend
+                onMeta: ({ chat: metaChat, messageId: metaMessageId }) => {
+                    if (!metaChat) return
+
+                    const returnedChatId = metaChat._id || metaChat.id
+                    if (!returnedChatId) return
+
+                    // ✅ CRITICAL: Update realChatId to the actual MongoDB ID
+                    const wasTemporary = realChatId !== returnedChatId && realChatId.startsWith('chat_')
+                    realChatId = returnedChatId
+
+                    // ⚠️ NOTE: We don't use metaMessageId for Redux updates
+                    // because our Redux message uses aiMessagePlaceholderId (frontend-generated)
+                    // The backend ID is only useful for direct DB operations
+
+                    // ✅ Create real chat in Redux if it doesn't exist
+                    if (!chats[returnedChatId]) {
+                        dispatch(createNewChat({
+                            chatId: returnedChatId,
+                            title: metaChat.title || 'New Chat'
+                        }))
+                    } else if (metaChat.title) {
+                        dispatch(updateChatTitle({
+                            chatId: returnedChatId,
+                            title: metaChat.title
+                        }))
                     }
 
-                    // Buffer tokens and flush periodically for optimal performance
-                    // This prevents too many Redux updates while maintaining responsiveness
-                    tokenBuffer += chunk;
-                    
-                    // Clear previous timeout
-                    if (bufferTimeout) {
-                        clearTimeout(bufferTimeout);
+                    // ✅ CRITICAL: Move messages from temp to real chat BEFORE deleting temp
+                    // Use local array instead of reading stale chats from closure
+                    if (wasTemporary && !hasMigrated && activeChatId.startsWith('chat_')) {
+                        hasMigrated = true
+                        
+                        // Add all tracked messages to the real chat using the local array
+                        if (messagesAddedToTemp.length > 0) {
+                            dispatch(addMessages({
+                                chatId: returnedChatId,
+                                messages: messagesAddedToTemp
+                            }))
+                        }
+                        
+                        // NOW delete the temporary chat
+                        dispatch(deleteChat({ chatId: activeChatId }))
                     }
+
+                    // ✅ Immediately update currentChatId to real ID
+                    dispatch(setCurrentChatId(returnedChatId))
+                },
+                
+                onChunk: ({ chunk }) => {
+                    tokenBuffer += chunk
+
+                    if (bufferTimeout) clearTimeout(bufferTimeout)
                     
-                    // Update after small delay to batch tokens (every ~50ms)
-                    bufferTimeout = setTimeout(flushTokenBuffer, 25);
+                    bufferTimeout = setTimeout(flushTokenBuffer, 25)
                     
-                    // Or flush immediately if we have a reasonable amount
                     if (tokenBuffer.length > 50) {
-                        clearTimeout(bufferTimeout);
-                        flushTokenBuffer();
+                        clearTimeout(bufferTimeout)
+                        flushTokenBuffer()
                     }
                 },
                 
-                onComplete: ({ content, chat, messageId: msgId, totalTokens }) => {
-                    // Flush any remaining token buffer
-                    clearTimeout(bufferTimeout);
-                    flushTokenBuffer();
+                onComplete: ({ content, totalTokens }) => {
+                    clearTimeout(bufferTimeout)
+                    flushTokenBuffer()
 
-                    // Update real chat ID and swap if needed
-                    if (chat) {
-                        realChatId = chat._id
-                        aiMessageId = msgId
-
-                        // If was temporary ID, swap it out from Redux
-                        if (activeChatId.startsWith('chat_')) {
-                            dispatch(deleteChat({ chatId: activeChatId }))
-                        }
-
-                        // Update chat with real MongoDB data
-                        dispatch(createNewChat({
-                            chatId: realChatId,
-                            title: chat.title || 'New Chat'
-                        }))
-
-                        // Move messages from temp to real chat if needed
-                        if (activeChatId !== realChatId && chats[activeChatId]) {
-                            dispatch(addMessages({
-                                chatId: realChatId,
-                                messages: chats[activeChatId].messages
-                            }))
-                            dispatch(deleteChat({ chatId: activeChatId }))
-                        }
-                    }
-
-                    // Mark AI message as complete
+                    // ✅ Mark AI message as complete using the placeholder ID in Redux
+                    // (we use frontend-generated ID consistently, not backend's ID)
                     dispatch(updateMessage({
                         chatId: realChatId,
-                        messageId: aiMessageId || aiMessagePlaceholderId,
-                        content: content, // Set final content
+                        messageId: aiMessagePlaceholderId,
+                        content: content,
                         isLoading: false,
                         tokenCount: totalTokens,
-                        replace: true // Replace content completely
+                        replace: true
                     }))
 
-                    // Update current chat ID
+                    // ✅ Ensure currentChatId is set to real chat
                     dispatch(setCurrentChatId(realChatId))
                     dispatch(setLoading(false))
 
                     if (onSuccess) {
-                        onSuccess({ content, chat, totalTokens })
+                        onSuccess({ content, totalTokens })
                     }
                 },
                 
                 onError: (error) => {
-                    // Flush token buffer on error
-                    clearTimeout(bufferTimeout);
-                    flushTokenBuffer();
+                    clearTimeout(bufferTimeout)
+                    flushTokenBuffer()
 
                     const errorMessage = error.message || 'Failed to stream message'
 
-                    // Mark message with error state
+                    // ✅ Mark message with error using the placeholder ID
                     dispatch(updateMessage({
                         chatId: realChatId,
-                        messageId: aiMessageId || aiMessagePlaceholderId,
+                        messageId: aiMessagePlaceholderId,
                         content: errorMessage,
                         isLoading: false,
                         error: errorMessage
