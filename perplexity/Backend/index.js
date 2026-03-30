@@ -92,7 +92,6 @@ async function startChat() {
         const userInput = await ask("\x1b[32mYou:\x1b[0m ");
         messages.push(new HumanMessage(userInput))
         if (userInput === "exit") {
-            console.log("Chat ended");
             break;
         }
 

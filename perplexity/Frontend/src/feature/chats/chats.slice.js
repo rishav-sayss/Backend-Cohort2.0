@@ -7,6 +7,7 @@ const chatSlice = createSlice({
         currentChatId: null,
         isLoading: false,
         error: null,
+        isMessageLoading: false,
     },
     reducers: {
         createNewChat: (state, action) => {
@@ -19,12 +20,58 @@ const chatSlice = createSlice({
             }
         },
         addNewMessage: (state, action) => {
-            const { chatId, content, role } = action.payload
-            state.chats[ chatId ].messages.push({ content, role })
+            const { chatId, content, role, id, isLoading, error } = action.payload
+            state.chats[ chatId ].messages.push({ 
+                id: id || `${Date.now()}-${Math.random()}`,
+                content, 
+                role,
+                timestamp: new Date().toISOString(),
+                isLoading: isLoading ?? false,
+                error: error ?? null,
+                tokenCount: 0
+            })
+            state.chats[chatId].lastUpdated = new Date().toISOString()
+        },
+        updateMessage: (state, action) => {
+            const { chatId, messageId, content, isLoading, error, tokenCount, append, replace } = action.payload
+            const chat = state.chats[chatId]
+            if (chat) {
+                const message = chat.messages.find(m => m.id === messageId)
+                if (message) {
+                    // Handle append mode: add tokens to existing content for true streaming
+                    if (append && content !== undefined) {
+                        message.content += content;
+                    }
+                    // Handle replace mode: replace entire content (for final completion)
+                    else if (replace && content !== undefined) {
+                        message.content = content;
+                    }
+                    // Default: set content directly
+                    else if (content !== undefined) {
+                        message.content = content;
+                    }
+                    
+                    if (isLoading !== undefined) message.isLoading = isLoading
+                    if (error !== undefined) message.error = error
+                    if (tokenCount !== undefined) message.tokenCount = tokenCount
+                }
+            }
+        },
+        setMessageLoading: (state, action) => {
+            state.isMessageLoading = action.payload
         },
         addMessages: (state, action) => {
             const { chatId, messages } = action.payload
-            state.chats[ chatId ].messages.push(...messages)
+            // ✅ FIXED: Map MongoDB _id to id, add missing properties
+            const formattedMessages = messages.map(msg => ({
+                id: msg.id || msg._id || `${Date.now()}-${Math.random()}`,
+                content: msg.content,
+                role: msg.role,
+                timestamp: msg.timestamp || msg.createdAt || new Date().toISOString(),
+                isLoading: false,
+                error: null
+            }))
+            state.chats[chatId].messages.push(...formattedMessages)
         },
         setChats: (state, action) => {
             state.chats = action.payload
@@ -54,7 +101,7 @@ const chatSlice = createSlice({
     }
 })
 
-export const { setChats, setCurrentChatId, setLoading, setError, createNewChat, addNewMessage, addMessages, deleteChat, updateChatTitle } = chatSlice.actions
+export const { setChats, setCurrentChatId, setLoading, setError, setMessageLoading, createNewChat, addNewMessage, updateMessage, addMessages, deleteChat, updateChatTitle } = chatSlice.actions
 export default chatSlice.reducer
 
 

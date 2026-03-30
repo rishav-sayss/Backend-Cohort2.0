@@ -2,6 +2,7 @@ import { RouterProvider } from "react-router-dom"
 import { router } from "./app.routes"
 import { useEffect } from "react"
 import { useauth } from "../feature/auth/hooks/useauth"
+import { ThemeProvider } from "../feature/shared/context/ThemeContext"
 
 function App() {
   
@@ -11,7 +12,9 @@ function App() {
   }, [])
 
   return (
-    <RouterProvider router={router} />
+    <ThemeProvider>
+      <RouterProvider router={router} />
+    </ThemeProvider>
   )
 }
 

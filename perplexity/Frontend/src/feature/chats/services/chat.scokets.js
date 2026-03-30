@@ -8,7 +8,6 @@ import { io } from "socket.io-client";
     })
 
     socket.on("connect", () => {
-        console.log("Connected to Socket.IO server")
     })
 
 }

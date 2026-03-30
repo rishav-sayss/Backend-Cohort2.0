@@ -12,6 +12,7 @@
   "type": "commonjs",
   "dependencies": {
     "@google/genai": "^1.46.0",
+    "@langchain/core": "^1.1.36",
     "@langchain/google-genai": "^2.1.26",
     "@langchain/mistralai": "^1.0.7",
     "@tavily/core": "^0.7.2",

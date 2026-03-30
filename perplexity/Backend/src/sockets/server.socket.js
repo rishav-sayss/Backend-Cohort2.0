@@ -11,10 +11,7 @@ function initsocket(httpserver) {
         }
     })
 
-    console.log("Socket.io server is RUNNING")
-
     io.on("connection", (socket) => {
-        console.log("A user connected: " + socket.id)
     })
 
 }
