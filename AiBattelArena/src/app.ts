@@ -1,15 +1,10 @@
-import express from "express"
+ import express from "express"
+ import rungraph from "./ai/graph.ai.js"
+const app  = express()
 
-let app = express()
-
-app.get( "/health",(req,res)=>{
-
-    res.status(200).json({
-        status:'okk'
-    })
-    
+app.get("/", async (requestAnimationFrame,res)=>{
+    let result = await rungraph("write the code for Factorial function in js ")
+    res.json(result)
 })
-export default app
 
-
-
+export default  app

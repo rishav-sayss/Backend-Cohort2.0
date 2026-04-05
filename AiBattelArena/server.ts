@@ -1,6 +1,6 @@
- import app from "./src/app.js"
+import app from "./src/app.js"
 
 
- app.listen(3000,()=>{
-    console.log("server is started at port 3000")
- })
+app.listen(3000,()=>{
+    console.log("server is stated port 3000")
+})
