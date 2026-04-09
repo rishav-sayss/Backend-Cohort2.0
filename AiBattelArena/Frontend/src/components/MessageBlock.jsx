@@ -4,6 +4,9 @@ import { Bot, User, Scale } from 'lucide-react';
 
 export function MessageBlock({ message }) {
 
+  const [sol1, setSol1] = React.useState("");
+  const [sol2, setSol2] = React.useState("");
+
   return (
     <div className="flex flex-col gap-12 w-full max-w-6xl mx-auto mb-24 transition-colors duration-300">
       {/* User Query */}
@@ -71,13 +74,13 @@ export function MessageBlock({ message }) {
             <p className="text-gray-600 dark:text-gray-400 leading-relaxed text-sm">{message.judge.solution_2_reasoning}</p>
           </div>
         </div>
-        
+
         <div className="mt-6 pt-6 border-t border-gray-200/60 dark:border-gray-800 text-center">
           <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300 shadow-sm">
-            {message.judge.solution_1_score > message.judge.solution_2_score ? 
-              '🏆 Model A wins this round' : 
-              message.judge.solution_2_score > message.judge.solution_1_score ? 
-                '🏆 Model B wins this round' : 
+            {message.judge.solution_1_score > message.judge.solution_2_score ?
+              '🏆 Model A wins this round' :
+              message.judge.solution_2_score > message.judge.solution_1_score ?
+                '🏆 Model B wins this round' :
                 '🤝 It\'s a tie'}
           </span>
         </div>
