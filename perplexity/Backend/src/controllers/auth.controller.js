@@ -62,7 +62,7 @@ let register = async (req, res) => {
  * @body { email, password }
  */
 
-async function login(req, res) {
+let login = async (req, res) => {
     const { email, password } = req.body;
 
     const user = await usermodel.findOne({ email })
@@ -98,12 +98,12 @@ async function login(req, res) {
         username: user.username,
     }, process.env.JWT_SECRET, { expiresIn: '7d' })
 
-    res.cookie("token",token,{
-    httpOnly: true,
-    secure: false, // true in production (HTTPS)
-    sameSite: "lax",
-    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days in ms
-})
+    res.cookie("token", token, {
+        httpOnly: true,
+        secure: false, // true in production (HTTPS)
+        sameSite: "lax",
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days in ms
+    })
 
     res.status(200).json({
         message: "Login successful",
@@ -119,11 +119,25 @@ async function login(req, res) {
 
 
 /**
+ * @desc Logout current logged in user
+ * @route POST /api/auth/logout
+ * @access Private
+ */
+let logout = async (req, res) => {
+    res.clearCookie("token");
+
+    res.status(200).json({
+        message: "Logout successful",
+        success: true
+    });
+}
+
+/**
  * @desc Get current logged in user's details
  * @route GET /api/auth/get-me
  * @access Private
  */
-async function getme(req, res) {
+let getme = async (req, res) => {
     const userId = req.user.id;
     const user = await usermodel.findById(userId).select("-password");
 
@@ -148,7 +162,7 @@ async function getme(req, res) {
  * @access Public
  * @query { token }
  */
-async function verifyEmail(req, res) {
+let verifyEmail = async (req, res) => {
     let token = req.query.token
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -221,4 +235,4 @@ async function verifyEmail(req, res) {
 
 
 
-module.exports = { login, register, verifyEmail, getme }
+module.exports = { login, register, logout, verifyEmail, getme }

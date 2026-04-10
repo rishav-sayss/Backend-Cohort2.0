@@ -11,12 +11,18 @@ function initsocket(httpserver) {
         }
     })
 
+    console.log("Socket.io server is RUNNING")
+
     io.on("connection", (socket) => {
+
+        console.log("A user connected: " + socket.id)
+
     })
 
 }
 
-  function getIO() {
+function getIO() {
+    
     if (!io) {
         throw new Error("Socket.io not initialized")
     }
@@ -24,4 +30,4 @@ function initsocket(httpserver) {
     return io
 }
 
-module.exports = {initsocket,getIO}
+module.exports = { initsocket, getIO }
