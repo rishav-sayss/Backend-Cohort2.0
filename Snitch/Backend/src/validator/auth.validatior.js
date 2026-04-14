@@ -10,7 +10,7 @@ function validaterequest(req, res, next) {
 
 export let Registervalidator = [
     body("email").isEmail().withMessage("invalid email formate"),
-    body("contect").notEmpty().withMessage("Contact is required")
+    body("contact").notEmpty().withMessage("Contact is required")
         .matches(/^\d{10}$/).withMessage("Contact must be a 10-digit number"),
     body("password")
         .isLength({ min: 6 }).withMessage("Password must be at least 6 characters long"),

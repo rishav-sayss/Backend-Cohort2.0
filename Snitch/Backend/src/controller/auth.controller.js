@@ -6,7 +6,7 @@ let sendtokenresponse = async (user, res, message) => {
 
      let token = jwt.sign({ id: user._id }, config.JWT_SECRET, { expiresIn: "7d" })
 
-     res.cookie("token", token)
+   await res.cookie("token", token)
 
      res.status(200).json({
           message,
@@ -24,8 +24,8 @@ let sendtokenresponse = async (user, res, message) => {
 
 export const register = async (req, res) => {
 
-     const { email, contact, password, fullname, isSeller } = req.body;
-
+     const { email, contact, password, fullname, seller  } = req.body;
+     console.log( email, contact, password, fullname, seller)
      try {
 
           const existingUser = await userModel.findOne({
@@ -44,7 +44,7 @@ export const register = async (req, res) => {
                contact,
                password,
                fullname,
-               role: isSeller ? "seller" : "buyer"
+               role: seller ? "seller" : "buyer"
           })
 
           await sendtokenresponse(user, res, "User registered successfully")
