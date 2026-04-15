@@ -3,10 +3,10 @@ import { Link } from 'react-router';
 import { useAuth } from "../Hooks/auth.hooks"
 import { useNavigate } from 'react-router';
 function Register() {
-  let auth = useAuth()
+  let { handelRegister } = useAuth()
   let navigate = useNavigate()
   const [formData, setFormData] = useState({
-    fullname: '',
+    fullName: '',
     contact: '',
     email: '',
     password: '',
@@ -15,22 +15,30 @@ function Register() {
 
   const handleChange = (e) => {
     const { id, value, type, checked } = e.target;
+
     setFormData(prev => ({
       ...prev,
-      [id]: type === 'checkbox' ? checked : value
+      [id]: type === 'checkbox' ? checked : value //iD ka use hota he dynamic {key}  banane ke liye    // like that ["fullName"Rishabh"
     }));
+
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await auth.handelRegister({
-      fullname: formData.fullname,
-      contact: formData.contact,
-      email: formData.email,
-      password: formData.password,
-      isSeller:  formData.isSeller
-    })
-    navigate("/")
+ 
+    try {
+      await handelRegister({
+        fullname: formData.fullName,
+        contact: formData.contact,
+        email: formData.email,
+        password: formData.password,
+        isSeller: formData.isSeller
+      });
+
+      navigate("/");
+    } catch (err) {
+      console.log(err.response?.data); // 🔥 exact backend error
+    }
   };
 
   return (
@@ -72,7 +80,7 @@ function Register() {
               <input
                 className="peer w-full bg-transparent border-0 border-b border-outline-variant/30 py-4 focus:ring-0 focus:border-primary transition-all duration-300 placeholder-transparent text-on-surface"
                 id="fullName"
-                value={formData.fullname}
+                value={formData.fullName}
                 onChange={handleChange}
                 placeholder=" "
                 type="text"
@@ -152,7 +160,7 @@ function Register() {
               <div className="relative flex items-center">
                 <input
                   className="w-5 h-5 rounded-lg border-outline-variant/30 bg-surface-container-low text-primary-container focus:ring-0 focus:ring-offset-0 transition-colors cursor-pointer"
-                  id="seller"
+                  id="isSeller"
                   checked={formData.isSeller}
                   onChange={handleChange}
                   type="checkbox"
@@ -160,7 +168,7 @@ function Register() {
               </div>
               <label
                 className="text-xs uppercase tracking-[0.15em] text-on-surface-variant cursor-pointer select-none"
-                htmlFor="seller"
+                htmlFor="isSeller"
               >
                 Register as Seller
               </label>

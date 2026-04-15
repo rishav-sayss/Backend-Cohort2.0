@@ -1,45 +1,51 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router';
-
+import { Link, useNavigate } from 'react-router';
+import { useAuth } from "../Hooks/auth.hooks"
 function Login() {
+
+  let { handleLogin } = useAuth()
+  let navigate = useNavigate()
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   });
 
   const handleChange = (e) => {
-    const { id, value } = e.target;
+    let { id, value } = e.target
     setFormData(prev => ({
       ...prev,
       [id]: value
-    }));
+    }))
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Login Attempt:", formData);
-    // TODO: Dispatch login action or call API here
+    await handleLogin({
+      email: formData.email,
+      password: formData.password
+    })
+    navigate("/")
   };
 
   return (
     <div className="font-body text-on-surface antialiased selection:bg-primary-container selection:text-on-primary min-h-screen flex flex-col lg:flex-row relative">
       {/* Aesthetic left side poster with marketing copy */}
       <div className="hidden lg:flex lg:w-1/2 relative bg-surface-container overflow-hidden flex-col justify-end p-12 xl:p-20">
-         <img src="/luxury_fashion_poster.png" alt="Snitch Fashion" className="absolute inset-0 w-full h-full object-cover object-center animate-slow-pan" />
-         <div className="absolute inset-0 bg-gradient-to-t from-surface via-surface/60 to-surface/10 opacity-90"></div>
-         <div className="absolute inset-0 bg-primary/5 mix-blend-overlay"></div>
-         
-         {/* Typographic Overlay */}
-         <div className="relative z-10 max-w-xl animate-slide-up opacity-0">
-            <div className="w-12 h-1 bg-primary mb-8" />
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-headline font-black tracking-tight text-white mb-6 uppercase leading-tight drop-shadow-lg">
-              Redefine <br/>
-              <span className="text-primary-container">The Modern Man.</span>
-            </h2>
-            <p className="text-on-surface-variant text-lg font-body leading-relaxed mb-6 font-medium max-w-md">
-              Elevate your everyday aesthetic. Premium fabrics, meticulous tailoring, and uncompromising quality for the discerning individual. Step into the Snitch experience.
-            </p>
-         </div>
+        <img src="/luxury_fashion_poster.png" alt="Snitch Fashion" className="absolute inset-0 w-full h-full object-cover object-center animate-slow-pan" />
+        <div className="absolute inset-0 bg-gradient-to-t from-surface via-surface/60 to-surface/10 opacity-90"></div>
+        <div className="absolute inset-0 bg-primary/5 mix-blend-overlay"></div>
+
+        {/* Typographic Overlay */}
+        <div className="relative z-10 max-w-xl animate-slide-up opacity-0">
+          <div className="w-12 h-1 bg-primary mb-8" />
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-headline font-black tracking-tight text-white mb-6 uppercase leading-tight drop-shadow-lg">
+            Redefine <br />
+            <span className="text-primary-container">The Modern Man.</span>
+          </h2>
+          <p className="text-on-surface-variant text-lg font-body leading-relaxed mb-6 font-medium max-w-md">
+            Elevate your everyday aesthetic. Premium fabrics, meticulous tailoring, and uncompromising quality for the discerning individual. Step into the Snitch experience.
+          </p>
+        </div>
       </div>
       <main className="flex-1 flex flex-col items-center justify-center p-6 sm:p-8 lg:p-12 w-full lg:w-1/2 relative z-10 min-h-screen lg:min-h-0 animate-slide-up-delayed opacity-0">
         {/* Branding Moment */}

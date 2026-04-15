@@ -5,17 +5,17 @@ let authapiInstance = axios.create({
     withCredentials: true
 })
 
-export let register =  async ({ email, contact, password, fullname ,seller }) => {
+export let register =  async ({ email, contact, password, fullname ,isSeller }) => {
 
     let response = await authapiInstance.post("/register", {
-        email, contact, password, fullname ,seller
+        email, contact, password, fullname ,isSeller
     })
     console.log(response.data)
     return response.data
-
 }
 
 export let login = async ({email,password}) => {
     let responce  = await authapiInstance.post("/login",{email,password})
+    console.log(responce)
     return responce.data
 }
