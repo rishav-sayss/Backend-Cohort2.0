@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { useAuth } from "../Hooks/auth.hooks"
+import ContinuewithGoogle from '../component/ContinuewithGoogle';
 function Login() {
 
   let { handleLogin } = useAuth()
@@ -110,6 +111,8 @@ function Login() {
                 Login
               </button>
             </div>
+
+            <ContinuewithGoogle />
           </form>
 
           {/* Secondary Actions */}

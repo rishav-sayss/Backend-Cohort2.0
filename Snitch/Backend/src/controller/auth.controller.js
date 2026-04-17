@@ -77,3 +77,10 @@ export const login = async (req, res) => {
 
 }
 
+
+export const googleCallback  = (req,res)=>{
+
+     console.log(req.user)
+
+     res.redirect("/login")
+}
