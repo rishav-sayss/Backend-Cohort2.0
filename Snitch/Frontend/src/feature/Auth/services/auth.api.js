@@ -10,12 +10,11 @@ export let register =  async ({ email, contact, password, fullname ,isSeller }) 
     let response = await authapiInstance.post("/register", {
         email, contact, password, fullname ,isSeller
     })
-    console.log(response.data)
     return response.data
 }
 
 export let login = async ({email,password}) => {
     let responce  = await authapiInstance.post("/login",{email,password})
-    console.log(responce)
+    console.log(responce.data)
     return responce.data
 }

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router';
 import { useAuth } from "../Hooks/auth.hooks"
 import { useNavigate } from 'react-router';
+import ContinuewithGoogle from '../component/ContinuewithGoogle';
 function Register() {
   let { handelRegister } = useAuth()
   let navigate = useNavigate()
@@ -25,7 +26,7 @@ function Register() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
- 
+
     try {
       await handelRegister({
         fullname: formData.fullName,
@@ -183,6 +184,8 @@ function Register() {
                 Register
               </button>
             </div>
+
+            <ContinuewithGoogle />
           </form>
 
           {/* Secondary Actions */}

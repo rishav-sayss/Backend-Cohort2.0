@@ -18,9 +18,6 @@ app.use(cors({
 //google setup
 app.use(passport.initialize());
 
-console.log(config.GOOGLE_CLIENT_ID)
-console.log(config.GOOGLE_CLIENT_SECRET)
-
 passport.use(new GoogleStrategy({
     clientID: config.GOOGLE_CLIENT_ID,
     clientSecret: config.GOOGLE_CLIENT_SECRET,
