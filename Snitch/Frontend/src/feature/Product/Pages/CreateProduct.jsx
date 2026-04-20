@@ -95,7 +95,7 @@ function CreateProduct() {
       images.forEach((img) => fd.append('images', img))
       console.log(fd)
       await HandelCreatProduct(fd)
-      navigate('/')
+      navigate('/seller/creatproduct')
     } catch (err) {
       console.error(err)
     } finally {
