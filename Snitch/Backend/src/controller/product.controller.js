@@ -1,5 +1,5 @@
 import productmodel from "../models/product.model.js"
-import { uploadfile } from "../service/storage.service.js"
+import { uploadFile } from "../service/storage.service.js"
 
 export const createProduct = async (req, res) => {
 
@@ -8,30 +8,26 @@ export const createProduct = async (req, res) => {
     } = req.body
 
     // console.log(req.files);
-
     let seller = req.user
-
+    // console.log("USER 👉", req.user);
     let images = await Promise.all(
         req.files.map(async (file) => {
-            // console.log(file.buffer, file.originalname)
-            let result =  await uploadfile({
+            return await uploadFile({
                 buffer: file.buffer,
-                fileName: file.originalname // ✅ correct
-            });
-
-            return result.url
+                fileName: file.originalname
+            })
         })
     );
 
     let product = await productmodel.create({
         title,
         description,
+        seller:seller._id || seller.id,
         price: {
-            amount: Number(priceAmount),
+            amount: priceAmount,
             currency: priceCurrency || "INR"
         },
-        images,
-        seller: seller._id
+        images,       
     })
 
     res.status(201).json({

@@ -5,19 +5,14 @@ let client = new ImageKit({
     privateKey: config.privateKey
 })
 
-export let uploadfile = async ({ buffer, fileName, folder = "snitch" }) => {
-
-    //  console.log("fileName:", fileName); // 👈 debug
+export let uploadFile = async ({ buffer, fileName, folder = "snitch" }) => {
 
     // console.log(buffer,fileName,folder)
-
-    let result = await client.files.upload({
-        file: buffer,
+    const result = await client.files.upload({
+        file: await ImageKit.toFile(buffer),
         fileName,
         folder
     })
-
-
 
     return result
 

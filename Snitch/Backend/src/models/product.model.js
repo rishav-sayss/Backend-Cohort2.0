@@ -4,9 +4,9 @@ let productSchema = mongoose.Schema({
     title: { type: String, required: true },
     description: { type: String, required: true },
     seller: {
-        type: mongoose.Schema.Types.ObjectId
-        , ref: "user"
-        , required: true
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: "user",
+        required: true
     },
 
     price: {
