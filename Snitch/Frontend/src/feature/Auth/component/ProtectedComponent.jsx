@@ -5,8 +5,9 @@ import { Navigate } from 'react-router'
 function ProtectedComponent({ children , role="buyer"  }) {
  
   let user = useSelector(state => state.auth.user)
+  console.log(user)
   let loading = useSelector(state => state.auth.loading)
-
+ 
   if (loading) {
     return <div>Loading...</div>
   }
@@ -15,7 +16,7 @@ function ProtectedComponent({ children , role="buyer"  }) {
     return <Navigate to="/login" />
   }
 
-  if( user.role !== role){
+  if(user.role !== role){
     return <Navigate to="/" />
   }
 

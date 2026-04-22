@@ -21,6 +21,7 @@ export const useAuth = () => {
         try {
             dispatch(setloading(true))
             const data = await getme()
+            
             dispatch(setuser(data.user))
         } catch (err) {
             // console.log(err)

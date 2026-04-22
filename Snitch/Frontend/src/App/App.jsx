@@ -8,7 +8,7 @@ function App() {
   let { handelgetme } = useAuth()
 
   const user = useSelector(state => state.auth.user)
-  console.log(user)
+  // console.log(user)
   
   useEffect(() => {
      handelgetme()

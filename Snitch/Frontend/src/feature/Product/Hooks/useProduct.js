@@ -7,9 +7,7 @@ export let UseProduct = () => {
     const dispatch = useDispatch()
 
     let HandelCreatProduct = async (formdata) => {
-
-        console.log(formdata)
-
+        
         let data = await CreatProduct(formdata)
         return data.product
     }
