@@ -25,7 +25,7 @@ export let Registervalidator = [
     validaterequest
 ]
 
-export const Loginvalodator = [
+export const Loginvalidator = [
     body("email")
         .isEmail().withMessage("Invalid email format"),
     body("password")

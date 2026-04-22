@@ -18,3 +18,10 @@ export let login = async ({email,password}) => {
     console.log(responce.data)
     return responce.data
 }
+
+export let getme = async () => {
+    let responce  = await authapiInstance.get("/me")
+    return responce.data
+}
+
+

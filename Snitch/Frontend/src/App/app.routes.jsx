@@ -3,6 +3,7 @@ import Ragister from "../feature/Auth/pages/Register"
 import Login from "../feature/Auth/pages/Login"
 import CreateProduct from "../feature/Product/Pages/CreateProduct"
 import SellerProductDetails from "../feature/Product/Pages/SellerProductDetails"
+import ProtectedComponent from "../feature/Auth/component/ProtectedComponent"
 
 
 export let routes = createBrowserRouter([
@@ -23,11 +24,15 @@ export let routes = createBrowserRouter([
         children: [
             {
                 path: "/seller/creatproduct",
-                element: <CreateProduct />
+                element: <ProtectedComponent role="seller">
+                    <CreateProduct />
+                </ProtectedComponent>
             },
             {
                 path: "/seller/deshboard",
-                element:  <SellerProductDetails/>
+                element: <ProtectedComponent role="seller" >
+                    <SellerProductDetails />
+                </ProtectedComponent>
             },
 
         ]
