@@ -16,9 +16,21 @@ export let CreatProduct = async (formdata)=>{
 
 }
 
-export let getAllproduct = async ()=>{
+export let getsellerproduct = async ()=>{
     
     let response = await productApiInstance.get("/getproducts")
     return response.data
 
+}
+
+export let getAllproduct = async ()=>{
+
+    let response = await productApiInstance.get("/")
+    return response.data
+
+}
+
+export async function getProductById(productId) {
+    const response = await productApiInstance.get(`/detail/${productId}`)
+    return response.data
 }
