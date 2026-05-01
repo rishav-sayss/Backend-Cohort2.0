@@ -15,7 +15,7 @@ export let register =  async ({ email, contact, password, fullname ,isSeller }) 
 
 export let login = async ({email,password}) => {
     let responce  = await authapiInstance.post("/login",{email,password})
-     
+    console.log(responce)
     return responce.data
 }
 

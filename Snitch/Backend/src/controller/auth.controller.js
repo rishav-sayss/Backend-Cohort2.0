@@ -60,9 +60,9 @@ export const register = async (req, res) => {
 export const login = async (req, res) => {
      // console.log(req.body)
      let { email, password } = req.body
-
+     console.log(email,password)
      const user = await userModel.findOne({ email });
-
+     console.log(user)
      if (!user) {
           return res.status(400).json({ message: "Invalid email or password" });
      }

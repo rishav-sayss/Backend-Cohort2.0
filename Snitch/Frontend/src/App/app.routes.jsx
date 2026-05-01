@@ -2,10 +2,11 @@ import { createBrowserRouter } from "react-router";
 import Ragister from "../feature/Auth/pages/Register";
 import Login from "../feature/Auth/pages/Login";
 import CreateProduct from "../feature/Product/Pages/CreateProduct";
-import SellerProductDetails from "../feature/Product/Pages/SellerProductDetails";
+// import SellerProductDetails from "../feature/Product/Pages/SellerProductDetails";
 import ProtectedComponent from "../feature/Auth/component/ProtectedComponent";
 import Home from "../feature/Product/Pages/Home";
 import ProductDetails from "../feature/Product/Pages/ProductDetails";
+import Deshboard from "../feature/Product/Pages/Deshboard";
 
 export let routes = createBrowserRouter([
   {
@@ -39,18 +40,18 @@ export let routes = createBrowserRouter([
         path: "/seller/deshboard",
         element: (
           <ProtectedComponent role="seller">
-            <SellerProductDetails />
+            <Deshboard />
           </ProtectedComponent>
         ),
       },
-      {
-        path: "/seller/product/:productId",
-        element: (
-          <ProtectedComponent role="seller">
-            <SellerProductDetails />
-          </ProtectedComponent>
-        ),
-      },
+      // {
+      //   path: "/seller/product/:productId",
+      //   element: (
+      //     <ProtectedComponent role="seller">
+      //       {/* <SellerProductDetails /> */}
+      //     </ProtectedComponent>
+      //   ),
+      // },
     ],
   },
 ]);

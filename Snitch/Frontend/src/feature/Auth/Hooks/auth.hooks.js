@@ -15,7 +15,7 @@ export const useAuth = () => {
     async function handleLogin({ email, password }) {
 
         const data = await login({ email, password })
-        
+        console.log(data.user)
         dispatch(setuser(data.user))
 
         return  data.user
