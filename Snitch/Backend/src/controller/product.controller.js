@@ -8,9 +8,9 @@ export const createProduct = async (req, res) => {
 
     } = req.body
 
-    // console.log(req.files);
+ 
     let seller = req.user
-    // console.log("USER 👉", req.user);
+    
     let images = await Promise.all(
         req.files.map(async (file) => {
             return await uploadFile({

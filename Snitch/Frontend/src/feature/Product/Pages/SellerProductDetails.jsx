@@ -3,7 +3,7 @@
  function SellerProductDetails() {
    return (
      <div>
-       
+       <h1>sellerporduct</h1>
      </div>
    )
  }
