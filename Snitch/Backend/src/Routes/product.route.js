@@ -4,8 +4,7 @@ import {
     getsellerproduct,
     getAllproduct,
     getProductDetails,
-    addProductVariant,
-    updateVariantStock
+    addProductVariant
 } from "../controller/product.controller.js"
 import { authenticateSeller } from "../middelwere/Auth.middelwere.js"
 import { createProductValidator } from "../validator/product.validater.js";
@@ -47,7 +46,14 @@ productRoute.get("/",getAllproduct)
  * @access Public
  */
 productRoute.get("/detail/:id", getProductDetails)
-productRoute.post("/:productId/variants", authenticateSeller, addProductVariant)
-productRoute.patch("/:productId/variants/:variantId/stock", authenticateSeller, updateVariantStock)
+ 
+
+
+/**
+ * @route post /api/products/:productId/variants
+ * @description Add a new variant to a product
+ * @access Private (Seller only)
+ */
+productRoute.post("/:productId/variants", authenticateSeller, upload.array('images', 7), addProductVariant)
 
 export default productRoute

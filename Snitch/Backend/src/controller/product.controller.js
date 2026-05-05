@@ -87,91 +87,58 @@ export async function getProductDetails(req, res) {
 }
 
 export async function addProductVariant(req, res) {
-    const { productId } = req.params;
-    const { priceAmount, priceCurrency, stock, attributes, images } = req.body;
 
-    const product = await productmodel.findById(productId);
+    const productId = req.params.productId;
 
-    if (!product) {
-        return res.status(404).json({
-            success: false,
-            message: "Product not found"
-        });
-    }
-
-    if (String(product.seller) !== String(req.user._id || req.user.id)) {
-        return res.status(403).json({
-            success: false,
-            message: "You are not allowed to edit this product"
-        });
-    }
-
-    const normalizedAttributes =
-        attributes && typeof attributes === "object" ? attributes : {};
-    const normalizedImages = Array.isArray(images)
-        ? images
-            .filter((img) => img && typeof img.url === "string" && img.url.trim())
-            .map((img) => ({ url: img.url.trim() }))
-        : [];
-
-    const variant = {
-        stock: Number(stock) || 0,
-        attributes: normalizedAttributes,
-        price: {
-            amount: Number(priceAmount),
-            currency: priceCurrency || "INR"
-        },
-        images: normalizedImages
-    };
-
-    product.variants.push(variant);
-    await product.save();
-
-    return res.status(201).json({
-        success: true,
-        message: "Variant created successfully",
-        variants: product.variants,
-        product
+    const product = await productmodel.findOne({
+        _id: productId,
+        seller: req.user._id
     });
-}
-
-export async function updateVariantStock(req, res) {
-    const { productId, variantId } = req.params;
-    const { stock } = req.body;
-
-    const product = await productmodel.findById(productId);
 
     if (!product) {
         return res.status(404).json({
-            success: false,
-            message: "Product not found"
-        });
+            message: "Product not found",
+            success: false
+        })
     }
 
-    if (String(product.seller) !== String(req.user._id || req.user.id)) {
-        return res.status(403).json({
-            success: false,
-            message: "You are not allowed to edit this product"
-        });
+    const files = req.files;
+    console.log(file)
+    const images = [];
+    if (files || files.length !== 0) {
+        (await Promise.all(files.map(async (file) => {
+            const image = await uploadFile({
+                buffer: file.buffer,
+                fileName: file.originalname
+            })
+            return image
+        }))).map(image => images.push(image))
     }
 
-    const variant = product.variants.id(variantId);
+    const price = req.body.priceAmount
+    const stock = req.body.stock
+    const attributes = JSON.parse(req.body.attributes || "{}")
 
-    if (!variant) {
-        return res.status(404).json({
-            success: false,
-            message: "Variant not found"
-        });
-    }
+    console.log(price)
 
-    variant.stock = Number(stock) || 0;
+    product.variants.push({
+        images,
+        price: {
+            amount: Number(price) || product.price.amount,
+            currency: req.body.priceCurrency || product.price.currency
+        },
+        stock,
+        attributes
+    })
+
     await product.save();
 
     return res.status(200).json({
+        message: "Product variant added successfully",
         success: true,
-        message: "Variant stock updated successfully",
-        variant,
-        variants: product.variants,
         product
-    });
+    })
+
 }
+
+ 

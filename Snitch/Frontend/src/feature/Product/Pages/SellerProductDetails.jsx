@@ -1,549 +1,411 @@
-import React, { useEffect, useState } from "react";
-import { UseProduct } from "../Hooks/useProduct";
-import { useParams } from "react-router";
+import React, { useEffect, useState } from 'react'
+import { UseProduct } from '../Hooks/useProduct';
+import { useParams } from 'react-router';
 
-function SellerProductDetails() {
-  const [product, setproduct] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
+// Helper icons
+const PlusIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>;
+const TrashIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>;
 
-  const [variantForm, setVariantForm] = useState({
-    priceAmount: "",
-    priceCurrency: "INR",
+const SellerProductDetails = () => {
+  const [ product, setProduct ] = useState(null);
+  const [ localVariants, setLocalVariants ] = useState([]);
+  const [ isAddingVariant, setIsAddingVariant ] = useState(false);
+  const [ loading, setLoading ] = useState(true);
+
+  // UI state for inputs to maintain focus
+  const [ attributeInputs, setAttributeInputs ] = useState([ { key: '', value: '' } ]);
+
+  // New variant state
+  const [ newVariant, setNewVariant ] = useState({
+    images: [],
     stock: 0,
-    attributeText: "size:M,color:Black",
-    imageUrls: "",
+    attributes: {}, // Strictly an object
+    price: { amount: '', currency: 'INR' }
   });
 
-  const [stockEdits, setStockEdits] = useState({});
-  const [isDragging, setIsDragging] = useState(false);
-
   const { productId } = useParams();
-  const {
-    handleGetProductById,
-    handleCreateProductVariant,
-    handleUpdateProductVariantStock,
-  } = UseProduct();
+  const { handleGetProductById, handleAddProductVariant } =  UseProduct();
 
-  async function fetchproductdetail() {
+  async function fetchProductDetails() {
+    setLoading(true);
     try {
-      setLoading(true);
-      setError("");
       const data = await handleGetProductById(productId);
-      setproduct(data);
-    } catch (err) {
-      setError(
-        err?.response?.data?.message || "Failed to load product details",
-      );
+      const prod = data?.product || data;
+      setProduct(prod);
+      // Initialize variants locally
+      if (prod?.variants) {
+        setLocalVariants(prod.variants);
+      }
+    } catch (error) {
+      console.error("Failed to fetch product details", error);
     } finally {
       setLoading(false);
     }
   }
 
   useEffect(() => {
-    fetchproductdetail();
-  }, [productId]);
+    fetchProductDetails();
+  }, [ productId ]);
 
-  function parseAttributes(text) {
-    const obj = {};
-    if (!text.trim()) return obj;
+  // Handlers for modifying existing variant stock natively
+  const handleStockChange = (index, newStock) => {
+    const updatedVariants = [ ...localVariants ];
+    updatedVariants[ index ] = { ...updatedVariants[ index ], stock: Number(newStock) };
+    setLocalVariants(updatedVariants);
+  };
 
-    text.split(",").forEach((pair) => {
-      const [rawKey, ...rawValue] = pair.split(":");
-      const key = rawKey?.trim();
-      const value = rawValue.join(":").trim();
-      if (key && value) obj[key] = value;
+  // Handlers for New Variant Form
+  const handleAddNewVariant = async () => {
+    // Validate required at least one attribute to be filled
+    const hasValidAttribute = attributeInputs.some(attr => attr.key.trim() && attr.value.trim());
+    if (!hasValidAttribute) {
+      alert("At least one valid attribute is required.");
+      return;
+    }
+
+    // Maps preview URL so the variant list can display the image locally
+    const cleanImages = newVariant.images.map(img => ({ url: img.previewUrl, file: img.file }));
+
+    // Attributes is already an object in newVariant, just use it safely
+    const cleanAttributes = { ...newVariant.attributes };
+
+    const variantToSave = {
+      images: cleanImages,
+      stock: Number(newVariant.stock),
+      attributes: cleanAttributes,
+      price: newVariant.price.amount
+        ? Number(newVariant.price.amount)
+        : undefined // price is optional
+    };
+
+    setLocalVariants([ ...localVariants, variantToSave ]);
+    setIsAddingVariant(false);
+
+    await handleAddProductVariant(productId, variantToSave)
+
+    // Reset form
+    // Note: should ideally revoke old object URLs as well to prevent memory leaks if it were a long-lived SPA
+    setAttributeInputs([ { key: '', value: '' } ]);
+    setNewVariant({
+      images: [],
+      stock: 0,
+      attributes: {},
+      price: { amount: '', currency: 'INR' }
     });
+  };
 
-    return obj;
-  }
+  const handleAddAttribute = () => {
+    setAttributeInputs(prev => [ ...prev, { key: '', value: '' } ]);
+  };
 
-  function parseImages(text) {
-    if (!text.trim()) return [];
-    return text
-      .split(",")
-      .map((url) => url.trim())
-      .filter(Boolean)
-      .map((url) => ({ url }));
-  }
+  const handleAttributeChange = (index, field, value) => {
+    const updatedInputs = [ ...attributeInputs ];
+    updatedInputs[ index ][ field ] = value;
+    setAttributeInputs(updatedInputs);
 
-  async function onCreateVariant(e) {
-    e.preventDefault();
-    setSaving(true);
-    setMessage("");
-    setError("");
+    // Synchronize to object format
+    const newAttrsObj = {};
+    updatedInputs.forEach(attr => {
+      if (attr.key.trim() !== '') {
+        newAttrsObj[ attr.key.trim() ] = attr.value;
+      }
+    });
+    setNewVariant(prev => ({ ...prev, attributes: newAttrsObj }));
+  };
 
-    try {
-      const payload = {
-        priceAmount: Number(variantForm.priceAmount),
-        priceCurrency: variantForm.priceCurrency,
-        stock: Number(variantForm.stock) || 0,
-        attributes: parseAttributes(variantForm.attributeText),
-        images: parseImages(variantForm.imageUrls),
-      };
+  const handleRemoveAttribute = (index) => {
+    const updatedInputs = attributeInputs.filter((_, i) => i !== index);
+    setAttributeInputs(updatedInputs);
 
-      const updatedProduct = await handleCreateProductVariant(
-        productId,
-        payload,
-      );
-      setproduct(updatedProduct);
-      setMessage("Variant created successfully");
-      setVariantForm({
-        priceAmount: "",
-        priceCurrency: variantForm.priceCurrency,
-        stock: 0,
-        attributeText: "size:M,color:Black",
-        imageUrls: "",
-      });
-    } catch (err) {
-      setError(err?.response?.data?.message || "Failed to create variant");
-    } finally {
-      setSaving(false);
+    // Synchronize to object format
+    const newAttrsObj = {};
+    updatedInputs.forEach(attr => {
+      if (attr.key.trim() !== '') {
+        newAttrsObj[ attr.key.trim() ] = attr.value;
+      }
+    });
+    setNewVariant(prev => ({ ...prev, attributes: newAttrsObj }));
+  };
+
+  const handleImageUpload = (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+
+    const availableSlots = 7 - newVariant.images.length;
+    const filesToAdd = files.slice(0, availableSlots);
+
+    if (files.length > availableSlots) {
+      alert(`You can only upload up to 7 images. ${filesToAdd.length} added.`);
     }
-  }
 
-  async function onUpdateStock(variantId) {
-    const nextStock = Number(stockEdits[variantId]);
-    if (Number.isNaN(nextStock)) return;
+    const newImageObjects = filesToAdd.map(file => ({
+      file,
+      previewUrl: URL.createObjectURL(file)
+    }));
 
-    setSaving(true);
-    setMessage("");
-    setError("");
-    try {
-      const updatedProduct = await handleUpdateProductVariantStock(
-        productId,
-        variantId,
-        nextStock,
-      );
-      setproduct(updatedProduct);
-      setMessage("Stock updated successfully");
-    } catch (err) {
-      setError(err?.response?.data?.message || "Failed to update stock");
-    } finally {
-      setSaving(false);
+    setNewVariant(prev => ({
+      ...prev,
+      images: [ ...prev.images, ...newImageObjects ]
+    }));
+
+    // Clear the input so identical files can be selected again if needed
+    e.target.value = '';
+  };
+
+  const handleRemoveImage = (index) => {
+    const imageToRemove = newVariant.images[ index ];
+    if (imageToRemove?.previewUrl) {
+      URL.revokeObjectURL(imageToRemove.previewUrl);
     }
-  }
+    const updatedImages = newVariant.images.filter((_, i) => i !== index);
+    setNewVariant(prev => ({ ...prev, images: updatedImages }));
+  };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-[#FBF9F6] text-[#1B1C1A] flex items-center justify-center font-sans">
-        <p className="text-xs font-semibold tracking-[0.15em] uppercase">
-          Loading product...
-        </p>
-      </div>
-    );
+    return <div className="min-h-screen bg-[#fbf9f6] flex items-center justify-center text-[#1b1c1a] font-serif">Loading gallery...</div>;
   }
 
   if (!product) {
-    return (
-      <div className="min-h-screen bg-[#FBF9F6] text-[#1B1C1A] flex items-center justify-center font-sans">
-        <p className="text-xs font-semibold tracking-[0.15em] uppercase">
-          Product not found
-        </p>
-      </div>
-    );
+    return <div className="min-h-screen bg-[#fbf9f6] flex items-center justify-center text-[#1b1c1a] font-serif">Product Not Found</div>;
   }
 
-  const variants = product.variants || [];
-
-  const incrementStock = (variantId) => {
-    setStockEdits((prev) => {
-      const current = Number(
-        prev[variantId] ??
-          product.variants.find((v) => v._id === variantId)?.stock ??
-          0,
-      );
-      return { ...prev, [variantId]: current + 1 };
-    });
-  };
-
-  const decrementStock = (variantId) => {
-    setStockEdits((prev) => {
-      const current = Number(
-        prev[variantId] ??
-          product.variants.find((v) => v._id === variantId)?.stock ??
-          0,
-      );
-      return { ...prev, [variantId]: Math.max(0, current - 1) };
-    });
-  };
-
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = (e) => {
-    e.preventDefault();
-    setIsDragging(false);
-  };
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    setIsDragging(false);
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      processFiles(e.dataTransfer.files);
-    }
-  };
-
-  const handleFileInput = (e) => {
-    if (e.target.files && e.target.files.length > 0) {
-      processFiles(e.target.files);
-    }
-  };
-
-  const processFiles = (files) => {
-    const fileArray = Array.from(files);
-    const promises = fileArray.map((file) => {
-      return new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result);
-        reader.readAsDataURL(file);
-      });
-    });
-
-    Promise.all(promises).then((base64Urls) => {
-      setVariantForm((prev) => {
-        const existing = prev.imageUrls ? prev.imageUrls + "," : "";
-        return { ...prev, imageUrls: existing + base64Urls.join(",") };
-      });
-    });
-  };
-
   return (
-    <div className="min-h-screen bg-[#FBF9F6] text-[#1B1C1A] font-sans selection:bg-[#C9A96E] selection:text-white pb-20">
-      <div className="max-w-[1200px] mx-auto px-6 sm:px-8 lg:px-12 py-12 lg:py-24">
-        {/* Top Section: Images and Product Info */}
-        <div className="flex flex-col lg:flex-row gap-12 lg:gap-24 items-start mb-24">
-          {/* Left Column: Product Images */}
-          <div className="w-full lg:w-1/2">
-            {product.images?.length > 0 && (
-              <div>
-                {/* Main image */}
-                <div className="w-full aspect-[4/5] bg-[#f5f3f3] mb-4">
-                  <img
-                    src={product.images[0].url}
-                    alt={product.title}
-                    className="w-full h-full object-cover grayscale-[20%]"
-                  />
-                </div>
-                {/* Sub images */}
-                {product.images.length > 1 && (
-                  <div className="grid grid-cols-2 gap-4">
-                    {product.images.slice(1, 3).map((img, idx) => (
-                      <div
-                        key={img._id || idx}
-                        className="aspect-square bg-[#f5f3f3]"
-                      >
-                        <img
-                          src={img.url}
-                          alt={`${product.title} ${idx + 2}`}
-                          className="w-full h-full object-cover grayscale-[20%]"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                )}
+    <div className="min-h-screen bg-[#fbf9f6] text-[#1b1c1a] font-sans pb-24">
+      {/* Top Banner / Header */}
+      <header className="sticky top-0 z-10 bg-[#fbf9f6]/80 backdrop-blur-md px-6 py-4 flex items-center justify-between">
+        <h1 className="font-serif text-xl tracking-wide uppercase">{product.title?.substring(0, 20)}{product.title?.length > 20 ? '...' : ''}</h1>
+      </header>
+
+      <main className="max-w-6xl mx-auto px-4 md:px-8 mt-8">
+
+        {/* Base Product Info */}
+        <section className="flex flex-col md:flex-row gap-8 mb-16">
+          <div className="w-full md:w-1/2">
+            {/* Gallery placeholder */}
+            <div className="w-full aspect-[4/5] bg-[#f5f3f0] overflow-hidden">
+              {product.images && product.images.length > 0 ? (
+                <img src={product.images[ 0 ].url} alt={product.title} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-[#7f7668]">No Image</div>
+              )}
+            </div>
+            {/* Thumbnails */}
+            {product.images && product.images.length > 1 && (
+              <div className="flex gap-2 mt-2 overflow-x-auto">
+                {product.images.slice(1).map((img, i) => (
+                  <img key={i} src={img.url} alt={`Thumb ${i}`} className="w-16 h-20 object-cover bg-[#f5f3f0] shrink-0" />
+                ))}
               </div>
             )}
           </div>
 
-          {/* Right Column: Product Info */}
-          <div className="w-full lg:w-1/2 lg:sticky lg:top-12">
-            <div className="mt-6 lg:mt-0">
-              <p className="text-[9px] font-semibold tracking-[0.2em] uppercase text-[#757575] mb-4">
-                Snitch Collection
-              </p>
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-serif font-normal tracking-tight text-[#1B1C1A] leading-tight mb-6">
-                {product.title}
-              </h1>
-              <p className="text-[13px] text-[#757575] leading-relaxed mb-8 max-w-lg">
-                {product.description}
-              </p>
-
-              {/* Price */}
-              <div className="border-t border-b border-[#e3e2e2] py-5 flex justify-between items-baseline max-w-lg">
-                <span className="text-xl font-serif tracking-tight text-[#1B1C1A]">
-                  ${product.price?.amount || 0}.00
-                </span>
-                <span className="text-[9px] font-semibold tracking-[0.2em] uppercase text-[#757575]">
-                  {product.price?.currency || "USD"}
-                </span>
-              </div>
+          <div className="w-full md:w-1/2 flex flex-col justify-center">
+            <h2 className="font-serif text-4xl md:text-5xl leading-tight mb-4 uppercase">{product.title}</h2>
+            <p className="text-[#6e6258] text-lg mb-6 leading-relaxed max-w-md">{product.description}</p>
+            <div className="text-2xl tracking-wide font-light mb-8">
+              {product.price?.amount} {product.price?.currency}
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* Bottom Section: Variants */}
-        <div className="max-w-[480px] mx-auto border-t border-[#e3e2e2] pt-16">
-          {(message || error) && (
-            <div
-              className={`mb-10 p-4 text-xs tracking-wide ${
-                error
-                  ? "bg-red-50 border border-red-200 text-red-700"
-                  : "bg-green-50 border border-green-200 text-green-700"
-              }`}
-            >
-              {error || message}
+        {/* Variants & Inventory */}
+        <section className="bg-[#f5f3f0] p-6 md:p-12">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
+            <h3 className="font-serif text-3xl uppercase">Variants & Inventory</h3>
+            {!isAddingVariant && (
+              <button
+                onClick={() => setIsAddingVariant(true)}
+                className="bg-[#745a27] text-[#ffffff] px-6 py-3 uppercase tracking-wider text-sm hover:bg-[#5a4312] transition-colors flex items-center gap-2 cursor-pointer"
+              >
+                <PlusIcon /> Add New Variant
+              </button>
+            )}
+          </div>
+
+          {/* Add New Variant Form */}
+          {isAddingVariant && (
+            <div className="bg-[#ffffff] p-6 md:p-8 mb-12 shadow-[0_20px_40px_rgba(27,28,26,0.04)]">
+              <div className="flex justify-between items-center mb-6">
+                <h4 className="font-serif text-xl uppercase">Create Variant</h4>
+                <button
+                  onClick={() => setIsAddingVariant(false)}
+                  className="text-[#7f7668] hover:text-[#1b1c1a] text-sm uppercase tracking-wider cursor-pointer"
+                >
+                  Cancel
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Form Left Col: Attributes & Basics */}
+                <div className="space-y-6">
+
+                  {/* Dynamic Attributes */}
+                  <div>
+                    <label className="block text-sm uppercase tracking-wider text-[#6e6258] mb-3">Attributes (e.g. Size, Color) *</label>
+                    <div className="space-y-3">
+                      {attributeInputs.map((attr, index) => (
+                        <div key={index} className="flex gap-2 items-center">
+                          <input
+                            type="text"
+                            placeholder="Key (e.g., Size)"
+                            value={attr.key}
+                            onChange={(e) => handleAttributeChange(index, 'key', e.target.value)}
+                            className="w-1/2 bg-transparent border-b border-[#d0c5b5] py-2 focus:outline-none focus:border-[#745a27] placeholder:text-[#d0c5b5]"
+                          />
+                          <input
+                            type="text"
+                            placeholder="Value (e.g., M)"
+                            value={attr.value}
+                            onChange={(e) => handleAttributeChange(index, 'value', e.target.value)}
+                            className="w-1/2 bg-transparent border-b border-[#d0c5b5] py-2 focus:outline-none focus:border-[#745a27] placeholder:text-[#d0c5b5]"
+                          />
+                          {attributeInputs.length > 1 && (
+                            <button onClick={() => handleRemoveAttribute(index)} className="text-[#ba1a1a] p-2 hover:bg-[#ffdad6] transition-colors cursor-pointer">
+                              <TrashIcon />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    <button
+                      onClick={handleAddAttribute}
+                      className="mt-3 text-[#745a27] text-sm uppercase tracking-wider flex items-center gap-1 hover:text-[#5a4312] cursor-pointer"
+                    >
+                      <PlusIcon /> Add Attribute
+                    </button>
+                  </div>
+
+                  {/* Stock & Price */}
+                  <div className="flex gap-4">
+                    <div className="w-1/2">
+                      <label className="block text-sm uppercase tracking-wider text-[#6e6258] mb-2">Initial Stock</label>
+                      <input
+                        type="number"
+                        value={newVariant.stock}
+                        onChange={(e) => setNewVariant({ ...newVariant, stock: e.target.value })}
+                        className="w-full bg-transparent border-b border-[#d0c5b5] py-2 focus:outline-none focus:border-[#745a27]"
+                      />
+                    </div>
+                    <div className="w-1/2">
+                      <label className="block text-sm uppercase tracking-wider text-[#6e6258] mb-2">Price Amount (Optional)</label>
+                      <input
+                        type="number"
+                        value={newVariant.price.amount}
+                        onChange={(e) => setNewVariant({ ...newVariant, price: { ...newVariant.price, amount: e.target.value } })}
+                        placeholder="Default if empty"
+                        className="w-full bg-transparent border-b border-[#d0c5b5] py-2 focus:outline-none focus:border-[#745a27] placeholder:text-[#d0c5b5]"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Form Right Col: Images */}
+                <div>
+                  <div className="flex justify-between items-end mb-3">
+                    <label className="block text-sm uppercase tracking-wider text-[#6e6258]">Image Upload (Max 7, Optional)</label>
+                    <span className="text-xs text-[#7f7668]">{newVariant.images.length}/7</span>
+                  </div>
+
+                  {newVariant.images.length > 0 && (
+                    <div className="grid grid-cols-3 gap-2 mb-4">
+                      {newVariant.images.map((img, index) => (
+                        <div key={index} className="relative aspect-[4/5] bg-[#f5f3f0]">
+                          <img src={img.previewUrl} alt="Preview" className="w-full h-full object-cover" />
+                          <button
+                            onClick={() => handleRemoveImage(index)}
+                            className="absolute top-1 right-1 bg-white/80 p-1 text-[#ba1a1a] hover:bg-white transition-colors cursor-pointer"
+                          >
+                            <TrashIcon />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {newVariant.images.length < 7 && (
+                    <div>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={handleImageUpload}
+                        className="block w-full text-sm text-[#6e6258]
+                          file:mr-4 file:py-2 file:px-4
+                          file:border-0 file:bg-[#f5f3f0] file:text-[#1b1c1a]
+                          hover:file:bg-[#e4e2df] file:cursor-pointer file:uppercase file:text-xs file:tracking-wider file:font-serif
+                          cursor-pointer"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="mt-10 flex justify-end">
+                <button
+                  onClick={handleAddNewVariant}
+                  className="bg-gradient-to-r from-[#745a27] to-[#c9a96e] text-[#ffffff] px-8 py-3 uppercase tracking-wider text-sm hover:opacity-90 transition-opacity cursor-pointer"
+                >
+                  Save Variant
+                </button>
+              </div>
             </div>
           )}
 
-          {/* Create Variant Section */}
-          <div className="mb-20">
-              <h2 className="text-xl font-serif tracking-widest mb-3 uppercase text-[#1B1C1A]">
-                Create Variant
-              </h2>
-              <p className="text-[11px] text-[#757575] mb-8 leading-relaxed">
-                Expand the collection by adding custom material and sizing
-                configurations.
-              </p>
-
-              <form onSubmit={onCreateVariant} className="space-y-8">
-                {/* Upload Image Box */}
-                <label
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onDrop={handleDrop}
-                  className={`w-32 h-32 border border-dashed flex flex-col items-center justify-center cursor-pointer transition-colors ${
-                    isDragging
-                      ? "border-[#1B1C1A] bg-[#f5f3f3] text-[#1B1C1A]"
-                      : "border-[#c5c5c5] text-[#757575] hover:border-[#1B1C1A]"
-                  }`}
-                >
-                  <svg
-                    className={`w-5 h-5 mb-3 transition-opacity ${
-                      isDragging ? "opacity-100" : "opacity-60"
-                    }`}
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={1}
-                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    />
-                  </svg>
-                  <span className="text-[8px] font-semibold tracking-[0.2em] uppercase text-center px-2">
-                    {isDragging
-                      ? "Drop Here"
-                      : variantForm.imageUrls
-                        ? "Image Added ✓"
-                        : "Upload Image"}
-                  </span>
-                  <input
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleFileInput}
-                  />
-                </label>
-
-                <div className="space-y-6">
-                  <div className="border-b border-[#e3e2e2] pb-2">
-                    <label className="block text-[9px] font-semibold tracking-[0.2em] uppercase text-[#757575] mb-1">
-                      Price ({variantForm.priceCurrency})
-                    </label>
-                    <input
-                      type="number"
-                      required
-                      value={variantForm.priceAmount}
-                      onChange={(e) =>
-                        setVariantForm({
-                          ...variantForm,
-                          priceAmount: e.target.value,
-                        })
-                      }
-                      placeholder="0.00"
-                      className="w-full border-0 bg-transparent px-0 py-1 text-sm focus:ring-0 text-[#1B1C1A]"
-                    />
-                  </div>
-
-                  <div className="border-b border-[#e3e2e2] pb-2">
-                    <label className="block text-[9px] font-semibold tracking-[0.2em] uppercase text-[#757575] mb-1">
-                      Stock Quantity
-                    </label>
-                    <input
-                      type="number"
-                      required
-                      value={variantForm.stock}
-                      onChange={(e) =>
-                        setVariantForm({
-                          ...variantForm,
-                          stock: e.target.value,
-                        })
-                      }
-                      placeholder="0"
-                      className="w-full border-0 bg-transparent px-0 py-1 text-sm focus:ring-0 text-[#1B1C1A]"
-                    />
-                  </div>
-
-                  <div className="border-b border-[#e3e2e2] pb-2">
-                    <label className="block text-[9px] font-semibold tracking-[0.2em] uppercase text-[#757575] mb-1">
-                      Attributes (e.g. Size:M, Color:Black)
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={variantForm.attributeText}
-                      onChange={(e) =>
-                        setVariantForm({
-                          ...variantForm,
-                          attributeText: e.target.value,
-                        })
-                      }
-                      placeholder="size:m, color:black"
-                      className="w-full border-0 bg-transparent px-0 py-1 text-sm focus:ring-0 text-[#1B1C1A]"
-                    />
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="mt-6 bg-[#1B1C1A] text-white text-[10px] font-bold tracking-[0.2em] uppercase py-4 px-8 hover:bg-[#303031] transition-colors disabled:opacity-50"
-                >
-                  {saving ? "Saving..." : "Create Variant"}
-                </button>
-              </form>
+          {/* Variants List */}
+          {localVariants.length === 0 ? (
+            <div className="py-12 text-center text-[#6e6258]">
+              <p>No variants have been created yet.</p>
             </div>
-
-            {/* Existing Variants */}
-            <div className="mb-24">
-              <h2 className="text-xl font-serif tracking-widest mb-8 uppercase text-[#1B1C1A]">
-                Existing Variants
-              </h2>
-
-              {variants.length === 0 ? (
-                <div className="border border-[#e3e2e2] p-8 text-center text-[#757575] text-[11px] tracking-wide bg-white max-w-md">
-                  No variants configured.
-                </div>
-              ) : (
-                <div className="border border-[#e3e2e2] bg-white max-w-lg">
-                  {variants.map((variant, idx) => (
-                    <div
-                      key={variant._id || idx}
-                      className={`p-6 flex gap-6 ${
-                        idx !== variants.length - 1
-                          ? "border-b border-[#e3e2e2]"
-                          : ""
-                      }`}
-                    >
-                      {/* Image */}
-                      <div className="w-24 h-32 bg-[#f5f3f3] flex-shrink-0">
-                        {variant.images?.[0] ? (
-                          <img
-                            src={variant.images[0].url}
-                            className="w-full h-full object-cover grayscale-[20%]"
-                            alt={`Variant ${idx + 1}`}
-                          />
-                        ) : null}
-                      </div>
-
-                      {/* Details */}
-                      <div className="flex-1 flex flex-col justify-between">
-                        <div>
-                          <p className="text-[9px] font-semibold tracking-[0.2em] uppercase text-[#757575] mb-2">
-                            Variant #{idx + 1}
-                          </p>
-                          <p className="text-sm font-serif mb-3">
-                            ${variant.price?.amount} {variant.price?.currency}
-                          </p>
-                          <div className="flex flex-wrap gap-2 mb-4">
-                            {Object.entries(variant.attributes || {}).map(
-                              ([key, value]) => (
-                                <span
-                                  key={key}
-                                  className="text-[8px] font-semibold tracking-[0.1em] bg-[#FBF9F6] border border-[#e3e2e2] text-[#757575] px-2 py-1 uppercase"
-                                >
-                                  {value}
-                                </span>
-                              ),
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Stock Controls */}
-                        <div className="flex items-center gap-3">
-                          <span className="text-[9px] font-semibold tracking-[0.2em] uppercase text-[#757575]">
-                            Stock
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+              {localVariants.map((variant, idx) => (
+                <div key={idx} className="bg-[#ffffff] flex flex-col pt-4 shadow-[0_20px_40px_rgba(27,28,26,0.02)]">
+                  <div className="px-6 flex gap-4 h-24 mb-4">
+                    {/* Variant Thumb */}
+                    <div className="w-16 h-20 bg-[#f5f3f0] shrink-0">
+                      {variant.images && variant.images.length > 0 ? (
+                        <img src={variant.images[ 0 ].url} alt="Variant" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-xs text-[#7f7668]">N/A</div>
+                      )}
+                    </div>
+                    {/* Attributes */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        {Object.entries(variant.attributes || {}).map(([ key, val ]) => (
+                          <span key={key} className="bg-[#f5f3f0] px-2 py-1 text-xs uppercase tracking-wider text-[#4d463a]">
+                            <span className="text-[#a8a094]">{key}:</span> {val}
                           </span>
-                          <div className="flex border border-[#e3e2e2] items-center h-8">
-                            <button
-                              type="button"
-                              onClick={() => decrementStock(variant._id)}
-                              className="w-8 text-[#757575] hover:text-[#1B1C1A] text-lg leading-none flex items-center justify-center"
-                            >
-                              -
-                            </button>
-                            <input
-                              type="number"
-                              className="w-10 text-center border-0 text-[10px] p-0 focus:ring-0 bg-transparent"
-                              value={
-                                stockEdits[variant._id] ??
-                                String(variant.stock ?? 0)
-                              }
-                              onChange={(e) =>
-                                setStockEdits((prev) => ({
-                                  ...prev,
-                                  [variant._id]: e.target.value,
-                                }))
-                              }
-                            />
-                            <button
-                              type="button"
-                              onClick={() => incrementStock(variant._id)}
-                              className="w-8 text-[#757575] hover:text-[#1B1C1A] text-lg leading-none flex items-center justify-center"
-                            >
-                              +
-                            </button>
-                          </div>
-                          <button
-                            onClick={() => onUpdateStock(variant._id)}
-                            disabled={saving}
-                            className="ml-auto text-[9px] font-semibold tracking-[0.2em] uppercase border-b border-[#1B1C1A] hover:text-[#757575] disabled:opacity-50"
-                          >
-                            Update
-                          </button>
-                        </div>
+                        ))}
+                      </div>
+                      <div className="text-sm font-light">
+                        {variant.price?.amount ? `${variant.price.amount} ${variant.price.currency}` : 'Base Price'}
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                  </div>
 
-            {/* Footer */}
-            <div className="border-t border-[#e3e2e2] pt-8 max-w-lg">
-              <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-[#1B1C1A] mb-6">
-                Snitch Atelier
-              </p>
-              <div className="flex flex-col gap-3 text-[8px] font-semibold tracking-[0.2em] uppercase text-[#757575] mb-12">
-                <a href="#" className="hover:text-[#1B1C1A]">
-                  Privacy
-                </a>
-                <a href="#" className="hover:text-[#1B1C1A]">
-                  Terms
-                </a>
-                <a href="#" className="hover:text-[#1B1C1A]">
-                  Returns
-                </a>
-                <a href="#" className="hover:text-[#1B1C1A]">
-                  Contact
-                </a>
-              </div>
-              <p className="text-[8px] tracking-[0.2em] uppercase text-[#b0b0b0]">
-                © 2026 Snitch Atelier. All rights reserved.
-              </p>
+                  {/* Stock Management Row */}
+                  <div className="mt-auto border-t border-[#f5f3f0] bg-[#fbf9f6] flex items-center px-6 py-3 justify-between">
+                    <label className="text-sm text-[#6e6258] uppercase tracking-wider">Current Stock</label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        value={variant.stock || 0}
+                        onChange={(e) => handleStockChange(idx, e.target.value)}
+                        className="w-20 bg-transparent border-b border-[#d0c5b5] py-1 text-right focus:outline-none focus:border-[#745a27] font-serif text-lg"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
-        </div>
-      </div>
+          )}
+
+        </section>
+
+      </main>
     </div>
-  );
+  )
 }
 
-export default SellerProductDetails;
+export default SellerProductDetails
