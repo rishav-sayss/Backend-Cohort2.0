@@ -1,5 +1,12 @@
 import { Router } from "express";
-import { createProduct, getsellerproduct ,getAllproduct ,getProductDetails } from "../controller/product.controller.js"
+import {
+    createProduct,
+    getsellerproduct,
+    getAllproduct,
+    getProductDetails,
+    addProductVariant,
+    updateVariantStock
+} from "../controller/product.controller.js"
 import { authenticateSeller } from "../middelwere/Auth.middelwere.js"
 import { createProductValidator } from "../validator/product.validater.js";
 let productRoute = Router()
@@ -40,5 +47,7 @@ productRoute.get("/",getAllproduct)
  * @access Public
  */
 productRoute.get("/detail/:id", getProductDetails)
+productRoute.post("/:productId/variants", authenticateSeller, addProductVariant)
+productRoute.patch("/:productId/variants/:variantId/stock", authenticateSeller, updateVariantStock)
 
 export default productRoute

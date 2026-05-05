@@ -13,10 +13,7 @@ export let routes = createBrowserRouter([
     path: "/",
     element: <Home />,
   },
-  // {
-  //   path:"/product",
-  //   element:<Products/>
-  // },
+ 
   {
     path: "/product/:productId",
     element: <ProductDetails />,

@@ -1,4 +1,11 @@
-import { CreatProduct, getsellerproduct, getAllproduct ,getProductById } from "../services/product.api"
+import {
+    CreatProduct,
+    getsellerproduct,
+    getAllproduct,
+    getProductById,
+    createProductVariant,
+    updateProductVariantStock
+} from "../services/product.api"
 import { setsellerproduct, setproducts } from "../state/product.state"
 import { useDispatch } from "react-redux"
 
@@ -31,6 +38,23 @@ export let UseProduct = () => {
         return data.product
     }
 
-    return { HandelCreatProduct, handleGetSellerProduct, handelgetallproducts , handleGetProductById }
+    async function handleCreateProductVariant(productId, payload) {
+        const data = await createProductVariant(productId, payload)
+        return data.product
+    }
+
+    async function handleUpdateProductVariantStock(productId, variantId, stock) {
+        const data = await updateProductVariantStock(productId, variantId, stock)
+        return data.product
+    }
+
+    return {
+        HandelCreatProduct,
+        handleGetSellerProduct,
+        handelgetallproducts,
+        handleGetProductById,
+        handleCreateProductVariant,
+        handleUpdateProductVariantStock
+    }
 
 }

@@ -118,7 +118,7 @@ function ProductImageCarousel({ images, title }) {
 
 /* ─── Product card ─── */
 function ProductCard({ product }) {
-  console.log(product)
+   
   const { title, description, price, images } = product;
 
   return (
