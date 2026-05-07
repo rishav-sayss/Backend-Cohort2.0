@@ -8,20 +8,25 @@ import Home from "../feature/Product/Pages/Home";
 import ProductDetails from "../feature/Product/Pages/ProductDetails";
 import Deshboard from "../feature/Product/Pages/Deshboard";
 import AllProducts from "../feature/Product/Pages/AllProducts";
+import Wishlist from "../feature/Product/Pages/Wishlist";
 
 export let routes = createBrowserRouter([
   {
     path: "/",
     element: <Home />,
   },
- 
+
   {
     path: "/product/:productId",
     element: <ProductDetails />,
   },
   {
-    path:"/product/allproducts",
-    element:<AllProducts/>
+    path: "/product/allproducts",
+    element: <AllProducts />,
+  },
+  {
+    path: "/product/wishlist",
+    element: <Wishlist />,
   },
   {
     path: "/register",

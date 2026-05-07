@@ -69,7 +69,7 @@ export let getAllproduct = async (req,res) => {
 
 export async function getProductDetails(req, res) {
     const { id } = req.params;
-
+     
     const product = await productmodel.findById(id)
 
     if (!product) {
@@ -88,8 +88,8 @@ export async function getProductDetails(req, res) {
 
 export async function addProductVariant(req, res) {
 
-    const productId = req.params.productId;
-
+    const productId = req.params.productId || req.params.productID;
+    // console.log(productId)
     const product = await productmodel.findOne({
         _id: productId,
         seller: req.user._id
@@ -103,9 +103,9 @@ export async function addProductVariant(req, res) {
     }
 
     const files = req.files;
-    console.log(file)
+    console.log(files)
     const images = [];
-    if (files || files.length !== 0) {
+    if (files && files.length !== 0) {
         (await Promise.all(files.map(async (file) => {
             const image = await uploadFile({
                 buffer: file.buffer,
@@ -132,6 +132,8 @@ export async function addProductVariant(req, res) {
     })
 
     await product.save();
+
+    console.log(product)
 
     return res.status(200).json({
         message: "Product variant added successfully",
