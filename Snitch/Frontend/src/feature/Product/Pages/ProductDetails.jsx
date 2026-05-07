@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router";
 import { UseProduct } from "../Hooks/useProduct";
 
@@ -8,6 +8,7 @@ function ProductDetails() {
   let [product, setproduct] = useState(null);
   let [selectedImage, setSelectedImage] = useState(0);
   let [loading, setLoading] = useState(true);
+  let [selectedAttributes, setSelectedAttributes] = useState({});
 
   const navigate = useNavigate();
 
@@ -21,6 +22,45 @@ function ProductDetails() {
   useEffect(() => {
     fetchproductdetails();
   }, [productId]);
+
+  useEffect(() => {
+    if (product?.variants?.length > 0) {
+      setSelectedAttributes(product.variants[0].attributes || {});
+    }
+  }, [product]);
+
+  const availableAttributes = useMemo(() => {
+    if (!product?.variants) return {};
+    const attrs = {};
+    product.variants.forEach(v => {
+      if (v.attributes) {
+        Object.entries(v.attributes).forEach(([key, value]) => {
+          if (!attrs[key]) attrs[key] = new Set();
+          attrs[key].add(value);
+        });
+      }
+    });
+    Object.keys(attrs).forEach(key => {
+      attrs[key] = Array.from(attrs[key]);
+    });
+    return attrs;
+  }, [product]);
+
+  const handleAttributeSelect = (key, value) => {
+    const newAttributes = { ...selectedAttributes, [key]: value };
+    let exactMatch = product.variants.find(v => 
+      Object.entries(newAttributes).every(([k, vVal]) => v.attributes?.[k] === vVal)
+    );
+    if (exactMatch) {
+      setSelectedAttributes(exactMatch.attributes || {});
+    } else {
+      let partialMatch = product.variants.find(v => v.attributes?.[key] === value);
+      if (partialMatch) {
+        setSelectedAttributes(partialMatch.attributes || {});
+      }
+    }
+    setSelectedImage(0);
+  };
 
   if (loading) {
     return (
@@ -80,7 +120,13 @@ function ProductDetails() {
     );
   }
 
-  const images = product.images && product.images.length > 0 ? product.images : [];
+  const currentVariant = product.variants?.find(v => {
+    if (!v.attributes) return false;
+    return Object.entries(selectedAttributes).every(([key, val]) => v.attributes[key] === val);
+  });
+
+  const displayPrice = currentVariant?.price?.amount ? currentVariant.price : product.price;
+  const images = currentVariant?.images?.length > 0 ? currentVariant.images : (product.images || []);
   const mainImage = images[selectedImage]?.url || "";
 
   return (
@@ -258,8 +304,8 @@ function ProductDetails() {
                     color: "#1b1c1a",
                   }}
                 >
-                  {product.price?.currency}{" "}
-                  {product.price?.amount?.toLocaleString()}
+                  {displayPrice?.currency}{" "}
+                  {displayPrice?.amount?.toLocaleString()}
                 </span>
               </div>
 
@@ -273,6 +319,40 @@ function ProductDetails() {
               >
                 {product.description}
               </p>
+
+              {/* ── Variants Selection ── */}
+              {Object.keys(availableAttributes).length > 0 && (
+                <div className="mb-10 flex flex-col gap-6">
+                  {Object.entries(availableAttributes).map(([attrKey, attrValues]) => (
+                    <div key={attrKey}>
+                      <span
+                        className="text-[10px] uppercase tracking-[0.18em] mb-3 block"
+                        style={{ color: "#7A6E63" }}
+                      >
+                        {attrKey}
+                      </span>
+                      <div className="flex flex-wrap gap-3">
+                        {attrValues.map((val) => {
+                          const isSelected = selectedAttributes[attrKey] === val;
+                          return (
+                            <button
+                              key={val}
+                              onClick={() => handleAttributeSelect(attrKey, val)}
+                              className={`py-2 px-5 text-[11px] uppercase tracking-[0.1em] border transition-all duration-300 ${
+                                isSelected
+                                  ? "bg-[#1b1c1a] text-[#fbf9f6] border-[#1b1c1a]"
+                                  : "bg-transparent text-[#1b1c1a] border-[#e4e2df] hover:border-[#1b1c1a]"
+                              }`}
+                            >
+                              {val}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
 
               {/* ── CTA Buttons ── */}
               <div className="flex flex-col sm:flex-row gap-4 mb-10">
@@ -316,7 +396,7 @@ function ProductDetails() {
                     className="text-[11px] font-mono"
                     style={{ color: "#1b1c1a" }}
                   >
-                    {product._id?.slice(-8).toUpperCase()}
+                    {(currentVariant?._id || product._id)?.slice(-8).toUpperCase()}
                   </span>
                 </div>
                 <div className="flex items-center gap-3">

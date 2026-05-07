@@ -7,6 +7,7 @@ import ProtectedComponent from "../feature/Auth/component/ProtectedComponent";
 import Home from "../feature/Product/Pages/Home";
 import ProductDetails from "../feature/Product/Pages/ProductDetails";
 import Deshboard from "../feature/Product/Pages/Deshboard";
+import AllProducts from "../feature/Product/Pages/AllProducts";
 
 export let routes = createBrowserRouter([
   {
@@ -17,6 +18,10 @@ export let routes = createBrowserRouter([
   {
     path: "/product/:productId",
     element: <ProductDetails />,
+  },
+  {
+    path:"/product/allproducts",
+    element:<AllProducts/>
   },
   {
     path: "/register",
