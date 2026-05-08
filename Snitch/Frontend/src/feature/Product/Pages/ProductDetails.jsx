@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router";
 import { UseProduct } from "../Hooks/useProduct";
+import { getAllproduct } from "../services/product.api";
+import ProductNavbar from "../Components/ProductNavbar";
 
 function ProductDetails() {
   let { productId } = useParams();
@@ -9,6 +11,10 @@ function ProductDetails() {
   let [selectedImage, setSelectedImage] = useState(0);
   let [loading, setLoading] = useState(true);
   let [selectedAttributes, setSelectedAttributes] = useState({});
+  let [selectedSize, setSelectedSize] = useState("");
+  let [wishlistIds, setWishlistIds] = useState([]);
+  let [cartIds, setCartIds] = useState([]);
+  let [allProducts, setAllProducts] = useState([]);
 
   const navigate = useNavigate();
 
@@ -28,6 +34,21 @@ function ProductDetails() {
       setSelectedAttributes(product.variants[0].attributes || {});
     }
   }, [product]);
+
+  useEffect(() => {
+    const storedWishlist = localStorage.getItem("wishlistProductIds");
+    const storedCart = localStorage.getItem("cartProductIds");
+    if (storedWishlist) setWishlistIds(JSON.parse(storedWishlist));
+    if (storedCart) setCartIds(JSON.parse(storedCart));
+  }, []);
+
+  useEffect(() => {
+    async function fetchAllProducts() {
+      const data = await getAllproduct();
+      setAllProducts(data?.products || []);
+    }
+    fetchAllProducts();
+  }, []);
 
   const availableAttributes = useMemo(() => {
     if (!product?.variants) return {};
@@ -60,6 +81,34 @@ function ProductDetails() {
       }
     }
     setSelectedImage(0);
+  };
+
+  const sizeAttributeKey = useMemo(() => {
+    const keys = Object.keys(availableAttributes || {});
+    return keys.find((key) => key.toLowerCase() === "size") || null;
+  }, [availableAttributes]);
+
+  useEffect(() => {
+    if (!sizeAttributeKey) {
+      setSelectedSize("");
+      return;
+    }
+    const currentSize = selectedAttributes[sizeAttributeKey];
+    if (currentSize) {
+      setSelectedSize(currentSize);
+      return;
+    }
+    const firstSize = availableAttributes[sizeAttributeKey]?.[0] || "";
+    setSelectedSize(firstSize);
+    if (firstSize) {
+      setSelectedAttributes((prev) => ({ ...prev, [sizeAttributeKey]: firstSize }));
+    }
+  }, [sizeAttributeKey, selectedAttributes, availableAttributes]);
+
+  const handleSizeSelect = (sizeValue) => {
+    if (!sizeAttributeKey) return;
+    setSelectedSize(sizeValue);
+    handleAttributeSelect(sizeAttributeKey, sizeValue);
   };
 
   if (loading) {
@@ -110,7 +159,7 @@ function ProductDetails() {
           </h2>
           <button
             onClick={() => navigate("/")}
-            className="text-xs uppercase tracking-[0.2em] underline underline-offset-4"
+            className="text-xs uppercase tracking-[0.2em] underline underline-offset-4 cursor-pointer"
             style={{ color: "#C9A96E" }}
           >
             Back to Collection
@@ -128,6 +177,51 @@ function ProductDetails() {
   const displayPrice = currentVariant?.price?.amount ? currentVariant.price : product.price;
   const images = currentVariant?.images?.length > 0 ? currentVariant.images : (product.images || []);
   const mainImage = images[selectedImage]?.url || "";
+  const isWishlisted = wishlistIds.includes(product?._id);
+  const inCart = cartIds.includes(product?._id);
+  
+  const detectProductType = (item) => {
+    const text = [
+      item?.title,
+      item?.category,
+      item?.description,
+      Array.isArray(item?.tags) ? item.tags.join(" ") : "",
+    ]
+      .join(" ")
+      .toLowerCase();
+
+    if (text.includes("t-shirt") || text.includes("tshirt") || text.includes("tee")) return "tshirt";
+    if (text.includes("shirt")) return "shirt";
+    if (text.includes("hoodie")) return "hoodie";
+    if (text.includes("sweatshirt")) return "sweatshirt";
+    if (text.includes("jacket")) return "jacket";
+    if (text.includes("jeans")) return "jeans";
+    if (text.includes("pant") || text.includes("trouser")) return "pants";
+    if (text.includes("short")) return "shorts";
+    return "other";
+  };
+
+  const currentProductType = detectProductType(product);
+  const relatedProducts = (allProducts || [])
+    .filter((item) => item?._id !== product?._id)
+    .filter((item) => detectProductType(item) === currentProductType)
+    .slice(0, 4);
+
+  const toggleWishlist = () => {
+    const updated = isWishlisted
+      ? wishlistIds.filter((id) => id !== product?._id)
+      : [...wishlistIds, product?._id];
+    setWishlistIds(updated);
+    localStorage.setItem("wishlistProductIds", JSON.stringify(updated));
+  };
+
+  const toggleCart = () => {
+    const updated = inCart
+      ? cartIds.filter((id) => id !== product?._id)
+      : [...cartIds, product?._id];
+    setCartIds(updated);
+    localStorage.setItem("cartProductIds", JSON.stringify(updated));
+  };
 
   return (
     <>
@@ -140,6 +234,15 @@ function ProductDetails() {
         className="min-h-screen selection:bg-[#C9A96E]/30"
         style={{ backgroundColor: "#fbf9f6", fontFamily: "'Inter', sans-serif" }}
       >
+        <div className="px-4 sm:px-6 lg:px-10 py-6">
+          <ProductNavbar
+            wishlistCount={wishlistIds.length}
+            cartCount={cartIds.length}
+            onWishlistClick={() => navigate("/product/wishlist")}
+            onLoginClick={() => navigate("/login")}
+          />
+        </div>
+
         {/* ── Nav breadcrumb ── */}
         <div
           className="border-b px-8 lg:px-16 xl:px-24 py-4 flex items-center gap-2 text-[11px] uppercase tracking-[0.18em]"
@@ -147,7 +250,7 @@ function ProductDetails() {
         >
           <button
             onClick={() => navigate("/")}
-            className="hover:text-[#C9A96E] transition-colors duration-200"
+            className="hover:text-[#C9A96E] transition-colors duration-200 cursor-pointer"
           >
             Collection
           </button>
@@ -169,7 +272,7 @@ function ProductDetails() {
                     <button
                       key={img._id || index}
                       onClick={() => setSelectedImage(index)}
-                      className={`w-16 aspect-square overflow-hidden transition-all duration-200 flex-shrink-0 ${
+                      className={`w-16 aspect-square overflow-hidden transition-all duration-200 flex-shrink-0 cursor-pointer ${
                         selectedImage === index
                           ? "opacity-100"
                           : "opacity-50 hover:opacity-80"
@@ -260,7 +363,7 @@ function ProductDetails() {
                             key={i}
                             onClick={() => setSelectedImage(i)}
                             aria-label={`Go to image ${i + 1}`}
-                            className="w-1.5 h-1.5 rounded-full transition-all duration-200"
+                            className="w-1.5 h-1.5 rounded-full cursor-pointer transition-all duration-200"
                             style={{
                               backgroundColor: i === selectedImage ? "#C9A96E" : "rgba(251,249,246,0.6)",
                               transform: i === selectedImage ? "scale(1.3)" : "scale(1)",
@@ -320,10 +423,39 @@ function ProductDetails() {
                 {product.description}
               </p>
 
-              {/* ── Variants Selection ── */}
-              {Object.keys(availableAttributes).length > 0 && (
+              {/* Size Selection */}
+              {sizeAttributeKey && availableAttributes[sizeAttributeKey]?.length > 0 && (
+                <div className="mb-8">
+                  <span
+                    className="text-[10px] uppercase tracking-[0.18em] mb-3 block"
+                    style={{ color: "#7A6E63" }}
+                  >
+                    Size
+                  </span>
+                  <div className="flex flex-wrap gap-3">
+                    {availableAttributes[sizeAttributeKey].map((size) => (
+                      <button
+                        key={size}
+                        onClick={() => handleSizeSelect(size)}
+                        className={`min-w-[44px] py-2 px-4 text-[11px] uppercase tracking-[0.1em] border rounded-md cursor-pointer transition-all duration-300 ${
+                          selectedSize === size
+                            ? "bg-[#1b1c1a] text-[#fbf9f6] border-[#1b1c1a]"
+                            : "bg-transparent text-[#1b1c1a] border-[#e4e2df] hover:border-[#1b1c1a]"
+                        }`}
+                      >
+                        {size}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Other Variants Selection */}
+              {Object.keys(availableAttributes).filter((key) => key !== sizeAttributeKey).length > 0 && (
                 <div className="mb-10 flex flex-col gap-6">
-                  {Object.entries(availableAttributes).map(([attrKey, attrValues]) => (
+                  {Object.entries(availableAttributes)
+                    .filter(([attrKey]) => attrKey !== sizeAttributeKey)
+                    .map(([attrKey, attrValues]) => (
                     <div key={attrKey}>
                       <span
                         className="text-[10px] uppercase tracking-[0.18em] mb-3 block"
@@ -338,7 +470,7 @@ function ProductDetails() {
                             <button
                               key={val}
                               onClick={() => handleAttributeSelect(attrKey, val)}
-                              className={`py-2 px-5 text-[11px] uppercase tracking-[0.1em] border transition-all duration-300 ${
+                              className={`py-2 px-5 text-[11px] uppercase tracking-[0.1em] border cursor-pointer transition-all duration-300 ${
                                 isSelected
                                   ? "bg-[#1b1c1a] text-[#fbf9f6] border-[#1b1c1a]"
                                   : "bg-transparent text-[#1b1c1a] border-[#e4e2df] hover:border-[#1b1c1a]"
@@ -350,33 +482,36 @@ function ProductDetails() {
                         })}
                       </div>
                     </div>
-                  ))}
+                    ))}
                 </div>
               )}
 
-              {/* ── CTA Buttons ── */}
-              <div className="flex flex-col sm:flex-row gap-4 mb-10">
-                {/* Add to Cart */}
+              {/* CTA */}
+              <div className="flex items-center gap-3 mb-10">
                 <button
-                  className="flex-1 py-4 px-8 text-[11px] uppercase tracking-[0.22em] font-medium border transition-all duration-300 hover:bg-[#1b1c1a] hover:text-[#fbf9f6] hover:border-[#1b1c1a]"
+                  onClick={toggleCart}
+                  className="flex-1 py-4 px-8 text-[11px] uppercase tracking-[0.22em] font-medium border cursor-pointer transition-all duration-300 hover:bg-[#1b1c1a] hover:text-[#fbf9f6] hover:border-[#1b1c1a]"
                   style={{
                     borderColor: "#1b1c1a",
                     color: "#1b1c1a",
                     backgroundColor: "transparent",
                   }}
                 >
-                  Add to Cart
+                  {inCart ? "Remove from Cart" : "Add to Cart"}
                 </button>
-
-                {/* Buy Now */}
                 <button
-                  className="flex-1 py-4 px-8 text-[11px] uppercase tracking-[0.22em] font-medium transition-all duration-300 hover:opacity-90"
+                  onClick={toggleWishlist}
+                  aria-label="Add to wishlist"
+                  className="w-14 h-14 flex items-center justify-center border rounded-md cursor-pointer transition-all duration-300 hover:border-[#1b1c1a]"
                   style={{
-                    backgroundColor: "#C9A96E",
-                    color: "#fbf9f6",
+                    borderColor: isWishlisted ? "#1b1c1a" : "#e4e2df",
+                    backgroundColor: isWishlisted ? "#1b1c1a" : "transparent",
+                    color: isWishlisted ? "#fbf9f6" : "#1b1c1a",
                   }}
                 >
-                  Buy Now
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill={isWishlisted ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 21s-6.2-4.35-9-8.1C.6 9.8 2.1 5 6.5 5c2.3 0 3.6 1.4 4.3 2.5.7-1.1 2-2.5 4.3-2.5C19.5 5 21 9.8 18.9 12.9 16.2 16.65 12 21 12 21z" />
+                  </svg>
                 </button>
               </div>
 
@@ -417,6 +552,48 @@ function ProductDetails() {
             </div>
           </div>
         </div>
+
+        {/* Related Products */}
+        <section className="max-w-7xl mx-auto px-8 lg:px-16 xl:px-24 pb-16">
+          <div className="border-t pt-10" style={{ borderColor: "#e4e2df" }}>
+            <h3
+              className="text-2xl font-light mb-6"
+              style={{ fontFamily: "'Cormorant Garamond', serif", color: "#1b1c1a" }}
+            >
+              Related Products
+            </h3>
+            {relatedProducts.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                {relatedProducts.map((item) => (
+                  <article
+                    key={item._id}
+                    onClick={() => navigate(`/product/${item._id}`)}
+                    className="border p-3 cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-md"
+                    style={{ borderColor: "#e4e2df", backgroundColor: "#fff" }}
+                  >
+                    <div className="aspect-[4/5] mb-3" style={{ backgroundColor: "#f5f3f0" }}>
+                      {(item?.images?.[0]?.url || item?.variants?.[0]?.images?.[0]?.url) ? (
+                        <img src={item?.images?.[0]?.url || item?.variants?.[0]?.images?.[0]?.url} alt={item.title} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-xs uppercase tracking-[0.18em]" style={{ color: "#7A6E63" }}>
+                          No Image
+                        </div>
+                      )}
+                    </div>
+                    <h4 className="text-sm mb-1" style={{ color: "#1b1c1a" }}>{item.title}</h4>
+                    <p className="text-sm" style={{ color: "#7A6E63" }}>
+                      {item?.price?.currency} {item?.price?.amount?.toLocaleString()}
+                    </p>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm" style={{ color: "#7A6E63" }}>
+                Related products will appear here soon.
+              </p>
+            )}
+          </div>
+        </section>
 
         {/* ── Footer ── */}
         <footer

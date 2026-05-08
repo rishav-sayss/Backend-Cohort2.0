@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { useSelector } from "react-redux";
 import { UseProduct } from "../Hooks/useProduct";
+import ProductNavbar from "../Components/ProductNavbar";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -15,21 +16,6 @@ const HEART_ICON = (filled) => (
     className="h-5 w-5"
   >
     <path d="M12 21s-7.2-4.35-9.54-8.31C.76 9.83 2.45 6.4 5.65 5.59c2.08-.52 4.16.2 5.35 1.88 1.2-1.68 3.27-2.4 5.35-1.88 3.2.8 4.89 4.24 3.19 7.1C19.2 16.65 12 21 12 21z" />
-  </svg>
-);
-
-const CART_ICON = (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.8"
-    className="h-5 w-5"
-  >
-    <circle cx="9" cy="20" r="1.5" />
-    <circle cx="18" cy="20" r="1.5" />
-    <path d="M3 4h2l2.3 10.2a2 2 0 0 0 2 1.55H18a2 2 0 0 0 1.95-1.56L21 7H7" />
   </svg>
 );
 
@@ -127,64 +113,17 @@ function AllProducts() {
       <ToastContainer toastStyle={{ backgroundColor: "#059669", color: "#ffffff" }} />
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-10 py-6">
-        <nav className="rounded-2xl border border-stone-200 bg-white/90 backdrop-blur-md px-4 sm:px-6 py-4 shadow-sm">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <button
-              onClick={() => navigate("/")}
-              className="text-2xl tracking-[0.24em] font-light uppercase"
-            >
-              Snitch
-            </button>
-
-            <div className="flex items-center gap-2 rounded-full bg-stone-100 p-1 self-start lg:self-auto">
-              {["all", "men", "women"].map((category) => (
-                <button
-                  key={category}
-                  onClick={() => setActiveCategory(category)}
-                  className={`px-4 py-2 text-xs uppercase tracking-[0.16em] rounded-full transition-all duration-300 ${
-                    activeCategory === category
-                      ? "bg-stone-900 text-stone-100"
-                      : "text-stone-600 hover:text-stone-900"
-                  }`}
-                >
-                  {category}
-                </button>
-              ))}
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-              <input
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search products..."
-                className="h-10 w-full sm:w-52 md:w-60 rounded-full border border-stone-300 bg-white px-4 text-sm outline-none transition focus:border-stone-700"
-              />
-
-              <button onClick={()=> navigate("/product/wishlist")} className="relative h-10 w-10 rounded-full border border-stone-300 cursor-pointer grid place-items-center hover:bg-stone-100 transition">
-                {HEART_ICON(false)}
-                {wishlistIds.length > 0 && (
-                  <span className="absolute -right-1 -top-1 min-w-[18px] h-[18px] px-1 rounded-full bg-stone-900 text-white text-[10px] leading-[18px] text-center">
-                    {wishlistIds.length}
-                  </span>
-                )}
-              </button>
-              <button className="relative h-10 w-10 rounded-full cursor-pointer border border-stone-300 grid place-items-center hover:bg-stone-100 transition">
-                {CART_ICON}
-                {cartIds.length > 0 && (
-                  <span className="absolute -right-1 -top-1 min-w-[18px] h-[18px] px-1 rounded-full bg-stone-900 text-white text-[10px] leading-[18px] text-center">
-                    {cartIds.length}
-                  </span>
-                )}
-              </button>
-              <button
-                onClick={() => navigate("/login")}
-                className="h-10 px-5 rounded-full cursor-pointer bg-stone-900 text-stone-100 text-xs uppercase tracking-[0.16em] hover:bg-stone-700 transition"
-              >
-                Login
-              </button>
-            </div>
-          </div>
-        </nav>
+        <ProductNavbar
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          showCategories={true}
+          activeCategory={activeCategory}
+          onCategoryChange={setActiveCategory}
+          wishlistCount={wishlistIds.length}
+          cartCount={cartIds.length}
+          onWishlistClick={() => navigate("/product/wishlist")}
+          onLoginClick={() => navigate("/login")}
+        />
 
         <section className="mt-8">
           <div className="mb-5 flex items-center justify-between">

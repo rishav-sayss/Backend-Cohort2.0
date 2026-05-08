@@ -28,8 +28,10 @@ export const useAuth = () => {
             const data = await getme()
             
             dispatch(setuser(data.user))
+            return data.user
         } catch (err) {
             // console.log(err)
+            return null
         } finally {
             dispatch(setloading(false))
         }

@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { useSelector } from "react-redux";
 import { UseProduct } from "../Hooks/useProduct";
+import ProductNavbar from "../Components/ProductNavbar";
 
 function Wishlist() {
   const navigate = useNavigate();
@@ -9,6 +10,7 @@ function Wishlist() {
   const products = useSelector((state) => state.product.products);
 
   const [wishlistIds, setWishlistIds] = useState([]);
+  const [cartIds, setCartIds] = useState([]);
 
   useEffect(() => {
     handelgetallproducts();
@@ -16,8 +18,12 @@ function Wishlist() {
 
   useEffect(() => {
     const stored = localStorage.getItem("wishlistProductIds");
+    const storedCart = localStorage.getItem("cartProductIds");
     if (stored) {
       setWishlistIds(JSON.parse(stored));
+    }
+    if (storedCart) {
+      setCartIds(JSON.parse(storedCart));
     }
   }, []);
 
@@ -32,10 +38,26 @@ function Wishlist() {
     localStorage.setItem("wishlistProductIds", JSON.stringify(updated));
   };
 
+  const toggleCart = (productId) => {
+    const isAlreadyInCart = cartIds.includes(productId);
+    const updated = isAlreadyInCart
+      ? cartIds.filter((id) => id !== productId)
+      : [...cartIds, productId];
+    setCartIds(updated);
+    localStorage.setItem("cartProductIds", JSON.stringify(updated));
+  };
+
   return (
     <div className="min-h-screen bg-stone-50 text-stone-900">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-10 py-8">
-        <div className="flex items-center justify-between mb-6">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-10 py-6">
+        <ProductNavbar
+          wishlistCount={wishlistIds.length}
+          cartCount={cartIds.length}
+          onWishlistClick={() => navigate("/product/wishlist")}
+          onLoginClick={() => navigate("/login")}
+        />
+
+        <div className="mt-8 flex items-center justify-between mb-6">
           <h1 className="text-2xl sm:text-3xl font-light tracking-wide">Wishlist</h1>
           <button
             onClick={() => navigate("/product/allproducts")}
@@ -55,6 +77,7 @@ function Wishlist() {
               const image =
                 product?.images?.[0]?.url ||
                 "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=900&q=80&auto=format&fit=crop";
+              const inCart = cartIds.includes(product?._id);
 
               return (
                 <article
@@ -78,15 +101,30 @@ function Wishlist() {
                       {product?.price?.currency || "$"}
                       {product?.price?.amount?.toLocaleString()}
                     </p>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        removeFromWishlist(product?._id);
-                      }}
-                      className="mt-4 w-full cursor-pointer rounded-full py-2.5 text-xs uppercase tracking-[0.16em] bg-stone-200 text-stone-700 hover:bg-stone-300 transition"
-                    >
-                      Remove
-                    </button>
+                    <div className="mt-4 flex items-center gap-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleCart(product?._id);
+                        }}
+                        className={`flex-1 cursor-pointer rounded-full py-2.5 text-xs uppercase tracking-[0.16em] transition ${
+                          inCart
+                            ? "bg-stone-200 text-stone-700 hover:bg-stone-300"
+                            : "bg-stone-900 text-stone-100 hover:bg-stone-700"
+                        }`}
+                      >
+                        {inCart ? "Remove from Cart" : "Add to Cart"}
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeFromWishlist(product?._id);
+                        }}
+                        className="px-4 cursor-pointer rounded-full py-2.5 text-xs uppercase tracking-[0.16em] bg-stone-200 text-stone-700 hover:bg-stone-300 transition"
+                      >
+                        Remove
+                      </button>
+                    </div>
                   </div>
                 </article>
               );
