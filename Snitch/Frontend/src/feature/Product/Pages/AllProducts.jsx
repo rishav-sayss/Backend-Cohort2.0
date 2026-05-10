@@ -6,6 +6,16 @@ import ProductNavbar from "../Components/ProductNavbar";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+const parseStoredIds = (value) => {
+  if (!value) return [];
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
 const HEART_ICON = (filled) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -57,8 +67,8 @@ function AllProducts() {
   useEffect(() => {
     const storedWishlist = localStorage.getItem("wishlistProductIds");
     const storedCart = localStorage.getItem("cartProductIds");
-    if (storedWishlist) setWishlistIds(JSON.parse(storedWishlist));
-    if (storedCart) setCartIds(JSON.parse(storedCart));
+    setWishlistIds(parseStoredIds(storedWishlist));
+    setCartIds(parseStoredIds(storedCart));
   }, []);
 
   const filteredProducts = useMemo(() => {

@@ -4,6 +4,16 @@ import { useSelector } from "react-redux";
 import { UseProduct } from "../Hooks/useProduct";
 import ProductNavbar from "../Components/ProductNavbar";
 
+const parseStoredIds = (value) => {
+  if (!value) return [];
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
 function Wishlist() {
   const navigate = useNavigate();
   const { handelgetallproducts } = UseProduct();
@@ -19,12 +29,8 @@ function Wishlist() {
   useEffect(() => {
     const stored = localStorage.getItem("wishlistProductIds");
     const storedCart = localStorage.getItem("cartProductIds");
-    if (stored) {
-      setWishlistIds(JSON.parse(stored));
-    }
-    if (storedCart) {
-      setCartIds(JSON.parse(storedCart));
-    }
+    setWishlistIds(parseStoredIds(stored));
+    setCartIds(parseStoredIds(storedCart));
   }, []);
 
   const wishlistProducts = useMemo(() => {

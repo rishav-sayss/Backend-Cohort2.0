@@ -1,0 +1,48 @@
+# STEP1 in wich have node20V + Linux OS 
+FROM  node:20-alpine 
+# Ye ek base image hoti hai. ??? mtlb Ready-made environment.
+# Node installed
+# npm installed
+# Linux environment
+# ye sab hota he eske andar
+
+
+
+
+WORKDIR /app
+# Container ke andar ek folder create karo:
+
+
+
+
+# step#2  Packages
+#tumare local project se ye  package.json package-lock.json leke ao or or container ke current folder (/app) me copy karo.
+#Docker caching use karta hai. 
+# Agar code change hua but dependencies nahi changed:
+# npm install dobara nahi chalega build fast ho jayega
+COPY  ./package.json ./
+COPY  ./package-lock.json ./
+
+
+
+# step3 install Nodemudel
+# Container ke andar dependencies install karo. 
+#ye jab run hotii h jab image banti he 
+RUN npm install
+
+
+
+ 
+# step4  Copy all Code base
+# Current project ka pura code container me copy karo.
+COPY . . 
+
+
+
+
+# Finaly start the server
+# Container start hote hi ye command chale:
+CMD [ "node" ,"server.js" ]
+
+
+

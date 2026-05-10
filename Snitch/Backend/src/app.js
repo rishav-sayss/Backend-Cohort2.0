@@ -2,6 +2,7 @@ import express from "express"
 import Authrouter from "./Routes/auth.routes.js"
 import cookieparser from "cookie-parser"
 import productRouter from "./Routes/product.route.js"
+import cartrouter from "./Routes/carts.route.js"
 import cors from "cors"
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20"
@@ -28,6 +29,7 @@ passport.use(new GoogleStrategy({
 
 app.use("/api/auth", Authrouter)
 app.use("/api/product", productRouter)
+app.use("/api/cart", cartrouter)
 
 export default app
 

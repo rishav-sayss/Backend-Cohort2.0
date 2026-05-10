@@ -3,6 +3,18 @@ import { useParams, useNavigate } from "react-router";
 import { UseProduct } from "../Hooks/useProduct";
 import { getAllproduct } from "../services/product.api";
 import ProductNavbar from "../Components/ProductNavbar";
+import { usecart  } from "../../Cart/hook/usecart";
+
+
+const parseStoredIds = (value) => {
+  if (!value) return [];
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
 
 function ProductDetails() {
   let { productId } = useParams();
@@ -15,6 +27,8 @@ function ProductDetails() {
   let [wishlistIds, setWishlistIds] = useState([]);
   let [cartIds, setCartIds] = useState([]);
   let [allProducts, setAllProducts] = useState([]);
+
+  let  {handelAdditem} =  usecart()
 
   const navigate = useNavigate();
 
@@ -38,8 +52,8 @@ function ProductDetails() {
   useEffect(() => {
     const storedWishlist = localStorage.getItem("wishlistProductIds");
     const storedCart = localStorage.getItem("cartProductIds");
-    if (storedWishlist) setWishlistIds(JSON.parse(storedWishlist));
-    if (storedCart) setCartIds(JSON.parse(storedCart));
+    setWishlistIds(parseStoredIds(storedWishlist));
+    setCartIds(parseStoredIds(storedCart));
   }, []);
 
   useEffect(() => {
@@ -169,16 +183,21 @@ function ProductDetails() {
     );
   }
 
-  const currentVariant = product.variants?.find(v => {
-    if (!v.attributes) return false;
-    return Object.entries(selectedAttributes).every(([key, val]) => v.attributes[key] === val);
-  });
+  const variants = product?.variants || [];
+  const hasSelectedAttrs = Object.keys(selectedAttributes || {}).length > 0;
+  const matchedVariant = variants.find((v) =>
+    Object.entries(selectedAttributes).every(([key, val]) => v?.attributes?.[key] === val)
+  );
+  const currentVariant = !hasSelectedAttrs ? variants[0] : (matchedVariant || variants[0] || null);
+
+  console.log(currentVariant)
 
   const displayPrice = currentVariant?.price?.amount ? currentVariant.price : product.price;
   const images = currentVariant?.images?.length > 0 ? currentVariant.images : (product.images || []);
   const mainImage = images[selectedImage]?.url || "";
   const isWishlisted = wishlistIds.includes(product?._id);
   const inCart = cartIds.includes(product?._id);
+  // console.log(inCart)
   
   const detectProductType = (item) => {
     const text = [
@@ -202,6 +221,7 @@ function ProductDetails() {
   };
 
   const currentProductType = detectProductType(product);
+  
   const relatedProducts = (allProducts || [])
     .filter((item) => item?._id !== product?._id)
     .filter((item) => detectProductType(item) === currentProductType)
@@ -217,9 +237,16 @@ function ProductDetails() {
 
   const toggleCart = () => {
     const updated = inCart
+     
       ? cartIds.filter((id) => id !== product?._id)
       : [...cartIds, product?._id];
+      
+       
     setCartIds(updated);
+    handelAdditem({
+      productId: product?._id,
+      variantId: currentVariant?._id || product?.variants?.[0]?._id
+    })
     localStorage.setItem("cartProductIds", JSON.stringify(updated));
   };
 
