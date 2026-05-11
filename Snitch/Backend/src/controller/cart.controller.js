@@ -5,13 +5,13 @@ import { stockofvariants } from "../dao/product.dao.js"
 
 export const addtocart = async (req,res)=>{
 
-    const {productId,varientId} =  req.params
+    const {productId,variantId} =  req.params
 
     const {quantity = 1} = req.body
 
     const product = await  productmodel.findOne({
         _id:productId,
-        "varient._id": varientId
+        "variants._id": variantId
     })
 
      if (!product) {
@@ -21,16 +21,27 @@ export const addtocart = async (req,res)=>{
         })
     }
 
-    const stock = await stockofvariants( productId ,varientId )
+    const stock = await stockofvariants(productId, variantId)
+    if (stock === null) {
+        return res.status(404).json({
+            message: "Product or variant not found",
+            success: false
+        })
+    }
 
-    const cart = ( await cartmodel.findOne({user:req.user._id})) || ( await cartmodel.findOne({user:req.user._id}))
+    const cart = (await cartmodel.findOne({ user: req.user._id })) || (await cartmodel.create({ user: req.user._id, items: [] }))
 
 
-    const isproductalreadyincart = cart.items.some(iteam => iteam.product.tostring() === productId && iteam.varient?.tostring() === varientId)
+    const isproductalreadyincart = cart.items.some(
+        (item) => item.product.toString() === productId && item.variant?.toString() === variantId
+    )
 
     if(isproductalreadyincart){
 
-        const quantityincart =  cart.items.find(iteam => iteam.product.tostring() === productId && iteam.varient?.tostring() === varientId)
+        const quantityInCartItem = cart.items.find(
+            (item) => item.product.toString() === productId && item.variant?.toString() === variantId
+        )
+        const quantityInCart = quantityInCartItem?.quantity || 0
 
         if (quantityInCart + quantity > stock) {
             return res.status(400).json({
@@ -43,7 +54,7 @@ export const addtocart = async (req,res)=>{
             await cartmodel.findOneAndUpdate(
             { user: req.user._id, "items.product": productId, "items.variant": variantId },
             { $inc: { "items.$.quantity": quantity } },
-            { new: true }
+            { returnDocument: "after" }
         )
 
             return res.status(200).json({
@@ -83,7 +94,7 @@ export const getcart = async (req,res)=>{
 
     const user = req.user
 
-    const cart = await cartmodel.findOne({user:user._id}).populate("items.product")
+    let cart = await cartmodel.findOne({user:user._id}).populate("items.product")
 
      if (!cart) {
         cart = await cartmodel.create({ user: user._id })

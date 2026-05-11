@@ -10,7 +10,7 @@ const parseStoredIds = (value) => {
   if (!value) return [];
   try {
     const parsed = JSON.parse(value);
-    return Array.isArray(parsed) ? parsed : [];
+    return Array.isArray(parsed) ? parsed.map((id) => String(id)) : [];
   } catch {
     return [];
   }
@@ -28,7 +28,7 @@ function ProductDetails() {
   let [cartIds, setCartIds] = useState([]);
   let [allProducts, setAllProducts] = useState([]);
 
-  let  {handelAdditem} =  usecart()
+  let  {handelAdditem, handleGetCart} =  usecart()
 
   const navigate = useNavigate();
 
@@ -49,11 +49,30 @@ function ProductDetails() {
     }
   }, [product]);
 
+  // console.log(selectedAttributes)
+
   useEffect(() => {
     const storedWishlist = localStorage.getItem("wishlistProductIds");
-    const storedCart = localStorage.getItem("cartProductIds");
     setWishlistIds(parseStoredIds(storedWishlist));
-    setCartIds(parseStoredIds(storedCart));
+  }, []);
+
+  useEffect(() => {
+    async function syncCartFromServer() {
+      try {
+        const cartResponse = await handleGetCart();
+        const ids = (cartResponse?.cart?.items || [])
+          .map((item) => item?.product?._id || item?.product)
+          .filter(Boolean)
+          .map((id) => String(id));
+        const uniqueIds = Array.from(new Set(ids));
+        setCartIds(uniqueIds);
+        localStorage.setItem("cartProductIds", JSON.stringify(uniqueIds));
+      } catch (error) {
+        const storedCart = localStorage.getItem("cartProductIds");
+        setCartIds(parseStoredIds(storedCart));
+      }
+    }
+    syncCartFromServer();
   }, []);
 
   useEffect(() => {
@@ -190,13 +209,13 @@ function ProductDetails() {
   );
   const currentVariant = !hasSelectedAttrs ? variants[0] : (matchedVariant || variants[0] || null);
 
-  console.log(currentVariant)
+   
 
   const displayPrice = currentVariant?.price?.amount ? currentVariant.price : product.price;
   const images = currentVariant?.images?.length > 0 ? currentVariant.images : (product.images || []);
   const mainImage = images[selectedImage]?.url || "";
   const isWishlisted = wishlistIds.includes(product?._id);
-  const inCart = cartIds.includes(product?._id);
+  const inCart = cartIds.includes(String(product?._id));
   // console.log(inCart)
   
   const detectProductType = (item) => {
@@ -235,19 +254,42 @@ function ProductDetails() {
     localStorage.setItem("wishlistProductIds", JSON.stringify(updated));
   };
 
-  const toggleCart = () => {
-    const updated = inCart
-     
-      ? cartIds.filter((id) => id !== product?._id)
-      : [...cartIds, product?._id];
-      
-       
-    setCartIds(updated);
-    handelAdditem({
-      productId: product?._id,
-      variantId: currentVariant?._id || product?.variants?.[0]?._id
-    })
-    localStorage.setItem("cartProductIds", JSON.stringify(updated));
+  const toggleCart = async () => {
+    const selectedVariantId = currentVariant?._id || product?.variants?.[0]?._id;
+
+    if (!selectedVariantId) {
+      alert("Please select a valid variant before adding to cart.");
+      return;
+    }
+    if ((currentVariant?.stock ?? 0) < 1) {
+      alert("This variant is out of stock.");
+      return;
+    }
+
+    if (inCart) {
+      const updated = cartIds.filter((id) => id !== product?._id);
+      setCartIds(updated);
+      localStorage.setItem("cartProductIds", JSON.stringify(updated));
+      return;
+    }
+
+    try {
+      await handelAdditem({
+        productId: product?._id,
+        variantId: selectedVariantId
+      });
+      const cartResponse = await handleGetCart();
+      const ids = (cartResponse?.cart?.items || [])
+        .map((item) => item?.product?._id || item?.product)
+        .filter(Boolean)
+        .map((id) => String(id));
+      const uniqueIds = Array.from(new Set(ids));
+      setCartIds(uniqueIds);
+      localStorage.setItem("cartProductIds", JSON.stringify(uniqueIds));
+    } catch (error) {
+      console.error("Failed to add item to cart", error);
+      alert(error?.response?.data?.message || error.message || "Failed to add item to cart");
+    }
   };
 
   return (

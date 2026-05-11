@@ -1,4 +1,4 @@
-import {addItem} from "../service/cart.service"
+import { addItem, getCart } from "../service/cart.service"
 
 import {useDispatch} from "react-redux"
 
@@ -17,6 +17,11 @@ export const  usecart  = () =>{
 
     }
 
-    return {handelAdditem}
+    async function handleGetCart () {
+        const data = await getCart();
+        return data;
+    }
+
+    return {handelAdditem, handleGetCart}
 
 }
