@@ -58,17 +58,15 @@ function AllProducts() {
   const [activeCategory, setActiveCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [wishlistIds, setWishlistIds] = useState([]);
-  const [cartIds, setCartIds] = useState([]);
-
+ 
   useEffect(() => {
     handelgetallproducts();
   }, []);
 
   useEffect(() => {
     const storedWishlist = localStorage.getItem("wishlistProductIds");
-    const storedCart = localStorage.getItem("cartProductIds");
     setWishlistIds(parseStoredIds(storedWishlist));
-    setCartIds(parseStoredIds(storedCart));
+    
   }, []);
 
   const filteredProducts = useMemo(() => {
@@ -95,28 +93,7 @@ function AllProducts() {
     setWishlistIds(updated);
     localStorage.setItem("wishlistProductIds", JSON.stringify(updated));
   };
-
-  const addToCart = (e, productId) => {
-    e.stopPropagation();
-    const isAlreadyInCart = cartIds.includes(productId);
-    const updated = isAlreadyInCart
-      ? cartIds.filter((id) => id !== productId)
-      : [...cartIds, productId];
-    setCartIds(updated);
-    localStorage.setItem("cartProductIds", JSON.stringify(updated));
-    toast.success(
-      isAlreadyInCart ? "Item removed from cart" : "Item added to cart",
-      {
-        position: "top-right",
-        autoClose: 1800,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        theme: "colored",
-      }
-    );
-  };
+ 
 
   return (
     <div className="min-h-screen bg-stone-50 text-stone-900">
@@ -130,7 +107,7 @@ function AllProducts() {
           activeCategory={activeCategory}
           onCategoryChange={setActiveCategory}
           wishlistCount={wishlistIds.length}
-          cartCount={cartIds.length}
+           
           onWishlistClick={() => navigate("/product/wishlist")}
           onLoginClick={() => navigate("/login")}
         />
@@ -156,12 +133,11 @@ function AllProducts() {
                   product?.images?.[0]?.url ||
                   "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=900&q=80&auto=format&fit=crop";
                 const isLiked = wishlistIds.includes(product?._id);
-                const inCart = cartIds.includes(product?._id);
-
+               
                 return (
                   <article
                     key={product?._id}
-                    onClick={() => navigate(`/product/${product?._id}`)}
+                    onClick={() => navigate(`/detail/${product?._id}`)}
                     className="group cursor-pointer rounded-2xl bg-white border border-stone-200 overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
                   >
                     <div className="relative aspect-[4/5] overflow-hidden">
@@ -170,6 +146,17 @@ function AllProducts() {
                         alt={product?.title || "Product image"}
                         className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                       />
+                      <div className="absolute inset-x-0 bottom-0 p-3 translate-y-full opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/detail/${product?._id}`);
+                          }}
+                          className="w-full rounded-full bg-white/95 py-2.5 text-xs font-semibold uppercase tracking-[0.16em] text-stone-900 hover:bg-stone-900 hover:text-stone-100 transition-colors"
+                        >
+                          View Details
+                        </button>
+                      </div>
                       <button
                         onClick={(e) => toggleWishlist(e, product?._id)}
                         className={`absolute right-3 top-3 h-9 w-9 rounded-full grid place-items-center border transition ${
@@ -191,16 +178,6 @@ function AllProducts() {
                         {product?.price?.currency || "$"}
                         {product?.price?.amount?.toLocaleString()}
                       </p>
-                      <button
-                        onClick={(e) => addToCart(e, product?._id)}
-                        className={`mt-4 w-full cursor-pointer rounded-full py-2.5 text-xs uppercase tracking-[0.16em] transition ${
-                          inCart
-                            ? "bg-stone-200 text-stone-700 hover:bg-stone-300"
-                            : "bg-stone-900 text-stone-100 hover:bg-stone-700"
-                        }`}
-                      >
-                        {inCart ? "Remove from Cart" : "Add to Cart"}
-                      </button>
                     </div>
                   </article>
                 );

@@ -93,9 +93,10 @@ function CreateProduct() {
       fd.append('priceAmount', formData.priceAmount)
       fd.append('priceCurrency', formData.priceCurrency)
       images.forEach((img) => fd.append('images', img))
-      console.log(fd)
+       
       await HandelCreatProduct(fd)
       navigate('/seller/creatproduct')
+      
     } catch (err) {
       console.error(err)
     } finally {

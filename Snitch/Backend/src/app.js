@@ -10,9 +10,10 @@ import {config} from "./config/config.js"
 let app = express()
 app.use(express.json())
 app.use(cookieparser())
+
 app.use(cors({
     origin: "http://localhost:5173",
-    methods: ["GET", "PUT", "POST", "DELETE"],
+    methods: [ "GET", "POST", "PUT", "DELETE" ],
     credentials: true
 }))
 

@@ -159,7 +159,7 @@ const Home = () => {
 
   useEffect(() => {
     handelgetallproducts();
-  }, [handelgetallproducts]);
+  }, []);
 
   const trendingProducts = products?.slice(0, 8) || [];
   const newArrivals = products?.slice(8, 16) || products?.slice(0, 4) || []; // Fallback if fewer products
@@ -202,7 +202,7 @@ const Home = () => {
           {/* Left - New Collection */}
           <div className="flex-1">
             <Link
-              to="/products"
+              to="/"
               className="text-[13px] font-medium tracking-wide hover:text-gray-500 transition-colors duration-200"
             >
               New Collection
@@ -239,7 +239,7 @@ const Home = () => {
                 </div>
               )}
               <button 
-                className={`text-gray-800 hover:text-gray-500 transition-colors ${isSearchOpen ? 'text-black' : ''}`}
+                className={`text-gray-800 cursor-pointer hover:text-gray-500 transition-colors ${isSearchOpen ? 'text-black' : ''}`}
                 onClick={() => {
                   setIsSearchOpen(!isSearchOpen);
                   if (isSearchOpen) setSearchQuery("");
@@ -284,14 +284,15 @@ const Home = () => {
               </div>
             )}
 
-            <button className="text-gray-800 hover:text-gray-500 transition-colors">
+            <button className="text-gray-800 cursor-pointer hover:text-gray-500 transition-colors">
               <HeartIcon />
             </button>
-            <button className="text-gray-800 hover:text-gray-500 transition-colors">
+            <button className="text-gray-800 cursor-pointer hover:text-gray-500 transition-colors">
               <CartIcon />
             </button>
 
             {user ? (
+              
               <div
                 className="flex items-center gap-[10px] cursor-pointer"
                 title={user.fullname || user.name || user.username}
@@ -301,7 +302,7 @@ const Home = () => {
                 </div>
               </div>
             ) : (
-              <button className="text-gray-800 hover:text-gray-500 transition-colors">
+              <button onClick={()=> {navigate("/register")}} className="text-gray-800 cursor-pointer hover:text-gray-500 transition-colors">
                 <UserIcon />
               </button>
             )}
@@ -364,9 +365,9 @@ const Home = () => {
                 <div
                   key={product._id}
                   className="group flex flex-col cursor-pointer"
-                  onClick={() => navigate(`/product/${product._id}`)}
-                  onMouseEnter={() => setHoveredCard(product._id)}
-                  onMouseLeave={() => setHoveredCard(null)}
+                  onClick={() => navigate(`/detail/${product._id}`)}
+                  // onMouseEnter={() => setHoveredCard(product._id)}
+                  // onMouseLeave={() => setHoveredCard(null)}
                 >
                   <div className="relative aspect-[3/4] overflow-hidden bg-gray-100 mb-5">
                     <img
@@ -381,9 +382,8 @@ const Home = () => {
                       <button
                         className="w-full py-3 bg-white/95 backdrop-blur-sm text-black text-xs font-semibold tracking-wider uppercase hover:bg-black hover:text-white transition-colors cursor-pointer"
                         onClick={(e) => {
-                          e.stopPropagation();
-                         
-                          navigate(`/product/${product._id}`)
+                          e.stopPropagation();                        
+                          navigate(`/detail/${product._id}`)
                           // console.log("Add to cart", product._id);
                         }}
                       >
