@@ -302,7 +302,7 @@ const Home = () => {
                 </div>
               </div>
             ) : (
-              <button onClick={()=> {navigate("/register")}} className="text-gray-800 cursor-pointer hover:text-gray-500 transition-colors">
+              <button onClick={()=> {navigate("/login")}} className="text-gray-800 cursor-pointer hover:text-gray-500 transition-colors">
                 <UserIcon />
               </button>
             )}
@@ -355,6 +355,7 @@ const Home = () => {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-12">
+            
             {trendingProducts.map((product) => {
               const imageUrl =
                 product.images?.[0]?.url ||
@@ -366,8 +367,6 @@ const Home = () => {
                   key={product._id}
                   className="group flex flex-col cursor-pointer"
                   onClick={() => navigate(`/detail/${product._id}`)}
-                  // onMouseEnter={() => setHoveredCard(product._id)}
-                  // onMouseLeave={() => setHoveredCard(null)}
                 >
                   <div className="relative aspect-[3/4] overflow-hidden bg-gray-100 mb-5">
                     <img
@@ -377,7 +376,7 @@ const Home = () => {
                       loading="lazy"
                     />
 
-                    {/* Add to Cart Overlay Button */}
+                    {/* view dertails Overlay Button */}
                     <div className="absolute bottom-0 left-0 w-full p-4 translate-y-full opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
                       <button
                         className="w-full py-3 bg-white/95 backdrop-blur-sm text-black text-xs font-semibold tracking-wider uppercase hover:bg-black hover:text-white transition-colors cursor-pointer"
@@ -404,6 +403,7 @@ const Home = () => {
                       {product.price?.amount?.toLocaleString()}
                     </span>
                   </div>
+
                 </div>
               );
             })}

@@ -30,7 +30,7 @@ export let UseProduct = () => {
 
   async function handleGetProductById(productId) {
     const data = await getProductById(productId);
-    console.log(data.product)
+    // console.log(data.product)
     return data.product;
   }
 
