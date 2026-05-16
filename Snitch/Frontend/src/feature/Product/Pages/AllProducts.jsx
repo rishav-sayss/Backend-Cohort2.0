@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { useSelector } from "react-redux";
 import { UseProduct } from "../Hooks/useProduct";
-import ProductNavbar from "../Components/ProductNavbar";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -92,6 +91,7 @@ function AllProducts() {
       : [...wishlistIds, productId];
     setWishlistIds(updated);
     localStorage.setItem("wishlistProductIds", JSON.stringify(updated));
+    window.dispatchEvent(new Event("snitch-storage-update"));
   };
  
 
@@ -100,17 +100,7 @@ function AllProducts() {
       <ToastContainer toastStyle={{ backgroundColor: "#059669", color: "#ffffff" }} />
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-10 py-6">
-        <ProductNavbar
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          showCategories={true}
-          activeCategory={activeCategory}
-          onCategoryChange={setActiveCategory}
-          wishlistCount={wishlistIds.length}
-           
-          onWishlistClick={() => navigate("/product/wishlist")}
-          onLoginClick={() => navigate("/login")}
-        />
+ 
 
         <section className="mt-8">
           <div className="mb-5 flex items-center justify-between">

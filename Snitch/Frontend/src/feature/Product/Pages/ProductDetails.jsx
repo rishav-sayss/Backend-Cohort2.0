@@ -30,6 +30,7 @@ const ProductDetail = () => {
     }, [ productId ]);
  
 
+    // Determine currently selected variant (null if not explicitly chosen)
     const activeVariant = useMemo(() => {
         if (!product?.variants || product.variants.length === 0) return null;
         const selectedKeys = Object.keys(selectedAttributes);
@@ -37,13 +38,12 @@ const ProductDetail = () => {
 
         return product.variants.find(v => {
             if (!v.attributes) return false;
-            // Show a variant as soon as user selects color/size etc.
             return selectedKeys.every(k => v.attributes[k] === selectedAttributes[k]);
         });
-    }, [ product, selectedAttributes ]);
+    }, [product, selectedAttributes]);
 
-
-    // console.log({ product, activeVariant })
+    // Ensure users actually select a variant; don't silently default to the first one.
+    const selectedVariantId = activeVariant?._id || activeVariant?.id || null;
 
     const availableAttributes = useMemo(() => {
         if (!product?.variants) return {};
@@ -247,32 +247,35 @@ const ProductDetail = () => {
                             {/* Actions */}
                             <div className="flex flex-col gap-4 mt-auto">
                                 <button
-                                    className="w-full py-4 text-[11px] uppercase tracking-[0.25em] font-medium transition-all duration-300"
+                                    className="w-full py-4 cursor-pointer text-[11px] uppercase tracking-[0.25em] font-medium transition-all duration-300"
                                     style={{
-                                        backgroundColor: '#1b1c1a',
+                                        backgroundColor: selectedVariantId ? '#1b1c1a' : '#b8b8b8',
                                         color: '#fbf9f6',
                                         fontFamily: "'Inter', sans-serif"
                                     }}
+                                    disabled={!selectedVariantId}
                                     onMouseEnter={e => {
+                                        if (!selectedVariantId) return;
                                         e.currentTarget.style.backgroundColor = '#C9A96E';
                                         e.currentTarget.style.color = '#1b1c1a';
                                     }}
                                     onMouseLeave={e => {
-                                        e.currentTarget.style.backgroundColor = '#1b1c1a';
+                                        e.currentTarget.style.backgroundColor = selectedVariantId ? '#1b1c1a' : '#b8b8b8';
                                         e.currentTarget.style.color = '#fbf9f6';
                                     }}
                                     onClick={() => {
+                                        if (!selectedVariantId) return;
                                          handelAdditem({
                                             productId: product._id,
-                                            variantId: activeVariant._id
+                                            variantId: selectedVariantId
                                         })
                                     }}
                                 >
-                                    Add to Cart
+                                    {selectedVariantId ? 'Add to Cart' : 'Select a Variant'}
                                 </button>
 
                                 <button
-                                    className="w-full py-4 text-[11px] uppercase tracking-[0.25em] font-medium transition-all duration-300 border"
+                                    className="w-full cursor-pointer py-4 text-[11px] uppercase tracking-[0.25em] font-medium transition-all duration-300 border"
                                     style={{
                                         backgroundColor: 'transparent',
                                         borderColor: '#d0c5b5',

@@ -235,11 +235,20 @@ function Deshboard() {
               </p>
             </div>
 
-            {products.length > 0 && (
-              <span className="text-[11px] tracking-[0.2em] uppercase font-bold px-4 py-2 rounded-full border border-[#ffcc00]/30 text-[#ffcc00]/80 bg-[#ffcc00]/5">
-                {products.length} Listed
-              </span>
-            )}
+            <div className="flex items-center gap-3">
+              {products.length > 0 && (
+                <span className="text-[11px] tracking-[0.2em] uppercase font-bold px-4 py-2 rounded-full border border-[#ffcc00]/30 text-[#ffcc00]/80 bg-[#ffcc00]/5">
+                  {products.length} Listed
+                </span>
+              )}
+              <button
+                type="button"
+                onClick={() => navigate("/seller/creatproduct")}
+                className="text-[11px] tracking-[0.2em] uppercase font-bold px-4 py-2 rounded-full border border-[#ffcc00]/40 text-[#3d2f00] bg-[#ffcc00] hover:bg-[#ffd633] transition-colors duration-200 cursor-pointer"
+              >
+                Create Product
+              </button>
+            </div>
           </div>
           <div className="mt-8 w-10 h-[2px] bg-[#ffcc00]" />
         </header>

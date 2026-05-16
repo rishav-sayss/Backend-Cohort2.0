@@ -9,25 +9,10 @@ import ProductDetails from "../feature/Product/Pages/ProductDetails";
 import Deshboard from "../feature/Product/Pages/Deshboard";
 import AllProducts from "../feature/Product/Pages/AllProducts";
 import Wishlist from "../feature/Product/Pages/Wishlist";
+import Cart from "../feature/Cart/pages/Cart";
+import AppLayout from "./AppLayout";
 
 export let routes = createBrowserRouter([
-  {
-    path: "/",
-    element: <Home />,
-  },
-
-  {
-    path: "/detail/:productId",
-    element: <ProductDetails />,
-  },
-  {
-    path: "/product/allproducts",
-    element: <AllProducts />,
-  },
-  {
-    path: "/product/wishlist",
-    element: <Wishlist />,
-  },
   {
     path: "/register",
     element: <Ragister />,
@@ -37,31 +22,62 @@ export let routes = createBrowserRouter([
     element: <Login />,
   },
   {
-    path: "seller",
+    element: <AppLayout />,
     children: [
       {
-        path: "/seller/creatproduct",
+        path: "/",
+        element: <Home />,
+      },
+
+      {
+        path: "/detail/:productId",
+        element: <ProductDetails />,
+      },
+      {
+        path: "/product/allproducts",
+        element: <AllProducts />,
+      },
+      {
+        path: "/product/wishlist",
+        element: <Wishlist />,
+      },
+
+      {
+        path: "/cart",
         element: (
-          <ProtectedComponent role="seller">
-            <CreateProduct />
+          <ProtectedComponent>
+            <Cart />
           </ProtectedComponent>
         ),
       },
       {
-        path: "/seller/deshboard",
-        element: (
-          <ProtectedComponent role="seller">
-            <Deshboard />
-          </ProtectedComponent>
-        ),
-      },
-      {
-        path: "/seller/product/:productId",
-        element: (
-          <ProtectedComponent role="seller">
-            <SellerProductDetails />
-          </ProtectedComponent>
-        ),
+        path: "seller",
+        children: [
+          {
+            path: "/seller/creatproduct",
+            element: (
+              <ProtectedComponent role="seller">
+                <CreateProduct />
+              </ProtectedComponent>
+            ),
+          },
+          {
+            path: "/seller/deshboard",
+            element: (
+              <ProtectedComponent role="seller">
+                <Deshboard />
+              </ProtectedComponent>
+            ),
+          },
+          {
+            path: "/seller/product/:productId",
+            element: (
+              <ProtectedComponent role="seller">
+                <SellerProductDetails />
+              </ProtectedComponent>
+            ),
+          },
+        ],
       },
     ],
   },

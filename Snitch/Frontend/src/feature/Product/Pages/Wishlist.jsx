@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { useSelector } from "react-redux";
 import { UseProduct } from "../Hooks/useProduct";
-import ProductNavbar from "../Components/ProductNavbar";
 
 const parseStoredIds = (value) => {
   if (!value) return [];
@@ -42,6 +41,7 @@ function Wishlist() {
     const updated = wishlistIds.filter((id) => id !== productId);
     setWishlistIds(updated);
     localStorage.setItem("wishlistProductIds", JSON.stringify(updated));
+    window.dispatchEvent(new Event("snitch-storage-update"));
   };
 
   const toggleCart = (productId) => {
@@ -51,19 +51,13 @@ function Wishlist() {
       : [...cartIds, productId];
     setCartIds(updated);
     localStorage.setItem("cartProductIds", JSON.stringify(updated));
+    window.dispatchEvent(new Event("snitch-storage-update"));
   };
 
   return (
     <div className="min-h-screen bg-stone-50 text-stone-900">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-10 py-6">
-        <ProductNavbar
-          wishlistCount={wishlistIds.length}
-          cartCount={cartIds.length}
-          onWishlistClick={() => navigate("/product/wishlist")}
-          onLoginClick={() => navigate("/login")}
-        />
-
-        <div className="mt-8 flex items-center justify-between mb-6">
+        <div className="mt-2 flex items-center justify-between mb-6">
           <h1 className="text-2xl sm:text-3xl font-light tracking-wide">Wishlist</h1>
           <button
             onClick={() => navigate("/product/allproducts")}

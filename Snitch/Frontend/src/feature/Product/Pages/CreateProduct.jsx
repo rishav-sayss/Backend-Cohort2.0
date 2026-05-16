@@ -95,6 +95,16 @@ function CreateProduct() {
       images.forEach((img) => fd.append('images', img))
        
       await HandelCreatProduct(fd)
+      previews.forEach((url) => URL.revokeObjectURL(url))
+      setFormData({
+        title: '',
+        description: '',
+        priceAmount: '',
+        priceCurrency: 'INR',
+      })
+      setImages([])
+      setPreviews([])
+      setFocusedField(null)
       navigate('/seller/creatproduct')
       
     } catch (err) {
@@ -125,6 +135,13 @@ function CreateProduct() {
             <p className="text-[11px] tracking-[0.35em] uppercase font-extrabold text-[#ffcc00] mb-5">
               Snitch
             </p>
+            <button
+              type="button"
+              onClick={() => navigate('/seller/deshboard')}
+              className="mb-6 text-[11px] tracking-[0.2em] uppercase font-bold px-4 py-2 rounded-full border border-[#ffcc00]/30 text-[#ffcc00]/80 bg-[#ffcc00]/5 hover:bg-[#ffcc00]/10 transition-colors duration-200 cursor-pointer"
+            >
+              Back To Dashboard
+            </button>
             <h1 className="text-[2.6rem] sm:text-[3.2rem] font-black tracking-tight leading-none text-[#e5e2e1] mb-3">
               Create Product
             </h1>
