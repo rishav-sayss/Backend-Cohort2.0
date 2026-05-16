@@ -107,3 +107,165 @@ export const getcart = async (req,res)=>{
     })
 
 }
+
+export const incrementCartItemQuantity = async (req, res) => {
+    const { productId, variantId } = req.params
+
+    const product = await productmodel.findOne({
+        _id: productId,
+        "variants._id": variantId
+    })
+
+    if (!product) {
+        return res.status(404).json({
+            message: "Product or variant not found",
+            success: false
+        })
+    }
+
+    const cart = await cartmodel.findOne({ user: req.user._id })
+
+    if (!cart) {
+        return res.status(404).json({
+            message: "Cart not found",
+            success: false
+        })
+    }
+
+    const stock = await stockofvariants(productId, variantId)
+
+    if (stock === null) {
+        return res.status(404).json({
+            message: "Product or variant not found",
+            success: false
+        })
+    }
+
+    const cartItem = cart.items.find(
+        item => item.product.toString() === productId && item.variant?.toString() === variantId
+    )
+
+    if (!cartItem) {
+        return res.status(404).json({
+            message: "Item not found in cart",
+            success: false
+        })
+    }
+
+    const itemQuantityInCart = cartItem.quantity || 0
+
+    if (itemQuantityInCart + 1 > stock) {
+        return res.status(400).json({
+            message: `Only ${stock} items left in stock. and you already have ${itemQuantityInCart} items in your cart`,
+            success: false
+        })
+    }
+
+    await cartmodel.findOneAndUpdate(
+        { user: req.user._id, "items.product": productId, "items.variant": variantId },
+        { $inc: { "items.$.quantity": 1 } },
+        { new: true }
+    )
+
+    return res.status(200).json({
+        message: "Cart item quantity incremented successfully",
+        success: true
+    })
+}
+
+export const decrementCartItemQuantity = async (req, res) => {
+    const { productId, variantId } = req.params
+
+    const product = await productmodel.findOne({
+        _id: productId,
+        "variants._id": variantId
+    })
+
+    if (!product) {
+        return res.status(404).json({
+            message: "Product or variant not found",
+            success: false
+        })
+    }
+
+    const cart = await cartmodel.findOne({ user: req.user._id })
+
+    if (!cart) {
+        return res.status(404).json({
+            message: "Cart not found",
+            success: false
+        })
+    }
+
+    const stock = await stockofvariants(productId, variantId)
+
+    if (stock === null) {
+        return res.status(404).json({
+            message: "Product or variant not found",
+            success: false
+        })
+    }
+
+    const cartItem = cart.items.find(
+        item => item.product.toString() === productId && item.variant?.toString() === variantId
+    )
+
+    if (!cartItem) {
+        return res.status(404).json({
+            message: "Item not found in cart",
+            success: false
+        })
+    }
+
+    const itemQuantityInCart = cartItem.quantity || 0
+
+    if (itemQuantityInCart + 1 > stock) {
+        return res.status(400).json({
+            message: `Only ${stock} items left in stock. and you already have ${itemQuantityInCart} items in your cart`,
+            success: false
+        })
+    }
+
+    await cartmodel.findOneAndUpdate(
+        { user: req.user._id, "items.product": productId, "items.variant": variantId },
+        { $inc:{ "items.$.quantity": -1 } },
+        { new: true }
+    )
+
+    return res.status(200).json({
+        message: "Cart item quantity incremented successfully",
+        success: true
+    })
+}
+
+export const removeCartItem = async (req, res) => {
+    const { itemId } = req.params
+
+    const cart = await cartmodel.findOne({ user: req.user._id })
+
+    if (!cart) {
+        return res.status(404).json({
+            message: "Cart not found",
+            success: false
+        })
+    }
+
+    const itemExists = cart.items.some(item => item._id.toString() === itemId)
+
+    if (!itemExists) {
+        return res.status(404).json({
+            message: "Item not found in cart",
+            success: false
+        })
+    }
+
+    cart.items = cart.items.filter(item => item._id.toString() !== itemId)
+    await cart.save()
+    await cart.populate("items.product")
+
+    return res.status(200).json({
+        message: "Item removed from cart successfully",
+        success: true,
+        cart
+    })
+}

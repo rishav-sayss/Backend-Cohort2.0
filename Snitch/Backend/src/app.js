@@ -13,7 +13,7 @@ app.use(cookieparser())
 
 app.use(cors({
     origin: "http://localhost:5173",
-    methods: [ "GET", "POST", "PUT", "DELETE" ],
+    methods: [ "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS" ],
     credentials: true
 }))
 
@@ -33,4 +33,3 @@ app.use("/api/product", productRouter)
 app.use("/api/cart", cartrouter)
 
 export default app
-

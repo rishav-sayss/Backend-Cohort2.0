@@ -68,12 +68,14 @@ function QuantityStepper({ value, onDecrement, onIncrement, loading }) {
 
 /* ─── Single cart item row ─── */
 function CartItem({ item, onQuantityChange, onRemove, loadingId }) {
+  
   const product = item.product;
   const variantId = item.variant;
   const quantity = item.quantity;
   const price = item.price?.amount ?? product?.price?.amount ?? 0;
   const currency = item.price?.currency ?? 'INR';
   const itemId = item._id;
+  const productId = product?._id;
   const isLoading = loadingId === itemId;
 
   /* resolve variant info */
@@ -143,8 +145,8 @@ function CartItem({ item, onQuantityChange, onRemove, loadingId }) {
             <QuantityStepper
               value={quantity}
               loading={isLoading}
-              onDecrement={() => onQuantityChange(itemId, quantity - 1)}
-              onIncrement={() => onQuantityChange(itemId, quantity + 1)}
+              onDecrement={() => onQuantityChange({ itemId, productId, variantId, nextQty: quantity - 1, currentQty: quantity })}
+              onIncrement={() => onQuantityChange({ itemId, productId, variantId, nextQty: quantity + 1, currentQty: quantity })}
             />
 
             <button
@@ -186,7 +188,7 @@ function CartItem({ item, onQuantityChange, onRemove, loadingId }) {
 /* ─── Main Cart Page ─── */
 function Cart() {
   const cartData = useSelector(state => state.cart.items);
-  const { handleGetCart, handleUpdateQuantity, handleRemoveItem } = usecart();
+  const { handleGetCart, handleIncrementCartItem, handledecrementCartItem ,handleRemoveItem } = usecart();
   const navigate = useNavigate();
 
   const [promoCode, setPromoCode] = useState('');
@@ -207,11 +209,16 @@ function Cart() {
   const total = subtotal - discount + shipping;
 
   /* ─── handlers ─── */
-  async function handleQuantityChange(itemId, newQty) {
-    if (newQty < 1) return;
+  async function handleQuantityChange({ itemId, productId, variantId, nextQty, currentQty }) {
+    if (nextQty < 1 || nextQty === currentQty) return;
+
     setLoadingId(itemId);
     try {
-      await handleUpdateQuantity({ itemId, quantity: newQty });
+      if (nextQty > currentQty) {
+        await handleIncrementCartItem({ productId, variantId });
+      } else {
+        await handledecrementCartItem({ productId, variantId });
+      }
     } catch (err) {
       console.error('Failed to update quantity', err);
     } finally {
@@ -272,49 +279,7 @@ function Cart() {
       <div style={{ minHeight: '100vh', backgroundColor: C.bg, fontFamily: "'Manrope', sans-serif", paddingBottom: 100 }}>
 
         {/* ── Top Nav ── */}
-        <div style={{
-          position: 'sticky', top: 0, zIndex: 50,
-          backgroundColor: C.bg,
-          borderBottom: `1px solid ${C.divider}`,
-          padding: '0 24px',
-          height: 60,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}>
-          <button
-            onClick={() => navigate(-1)}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, color: C.charcoal, padding: 0 }}
-            aria-label="Go back"
-          >
-            <svg width="20" height="20" fill="none" stroke={C.charcoal} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.4" d="M19 12H5M12 5l-7 7 7 7" />
-            </svg>
-          </button>
-
-          <Link to="/" style={{
-            fontFamily: "'Noto Serif', serif",
-            fontSize: 18,
-            letterSpacing: '0.12em',
-            textTransform: 'uppercase',
-            color: C.charcoal,
-            textDecoration: 'none',
-            fontWeight: 400,
-          }}>
-            Snitch
-          </Link>
-
-          <span style={{
-            fontFamily: "'Manrope', sans-serif",
-            fontSize: 10,
-            fontWeight: 600,
-            letterSpacing: '0.15em',
-            textTransform: 'uppercase',
-            color: C.muted,
-          }}>
-            {totalItems} {totalItems === 1 ? 'item' : 'items'}
-          </span>
-        </div>
+ 
 
         {/* ── Page content ── */}
         <div style={{ maxWidth: 960, margin: '0 auto', padding: '0 24px' }}>
