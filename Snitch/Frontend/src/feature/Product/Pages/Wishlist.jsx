@@ -13,12 +13,24 @@ const parseStoredIds = (value) => {
   }
 };
 
+const normalizeWishlistEntries = (entries = []) => {
+  return entries
+    .map((entry) => {
+      if (typeof entry === "string") return { productId: entry, variantId: null };
+      if (entry && typeof entry === "object" && entry.productId) {
+        return { productId: entry.productId, variantId: entry.variantId || null };
+      }
+      return null;
+    })
+    .filter(Boolean);
+};
+
 function Wishlist() {
   const navigate = useNavigate();
   const { handelgetallproducts } = UseProduct();
   const products = useSelector((state) => state.product.products);
 
-  const [wishlistIds, setWishlistIds] = useState([]);
+  const [wishlistEntries, setWishlistEntries] = useState([]);
   const [cartIds, setCartIds] = useState([]);
 
   useEffect(() => {
@@ -28,18 +40,29 @@ function Wishlist() {
   useEffect(() => {
     const stored = localStorage.getItem("wishlistProductIds");
     const storedCart = localStorage.getItem("cartProductIds");
-    setWishlistIds(parseStoredIds(stored));
+    setWishlistEntries(normalizeWishlistEntries(parseStoredIds(stored)));
     setCartIds(parseStoredIds(storedCart));
   }, []);
 
   const wishlistProducts = useMemo(() => {
     if (!Array.isArray(products) || products.length === 0) return [];
-    return products.filter((product) => wishlistIds.includes(product?._id));
-  }, [products, wishlistIds]);
+    return wishlistEntries
+      .map((entry) => {
+        const product = products.find((p) => p?._id === entry.productId);
+        if (!product) return null;
+        const variant = entry.variantId
+          ? product?.variants?.find((v) => v?._id === entry.variantId)
+          : null;
+        return { ...entry, product, variant };
+      })
+      .filter(Boolean);
+  }, [products, wishlistEntries]);
 
-  const removeFromWishlist = (productId) => {
-    const updated = wishlistIds.filter((id) => id !== productId);
-    setWishlistIds(updated);
+  const removeFromWishlist = (productId, variantId) => {
+    const updated = wishlistEntries.filter(
+      (entry) => !(entry.productId === productId && entry.variantId === (variantId || null))
+    );
+    setWishlistEntries(updated);
     localStorage.setItem("wishlistProductIds", JSON.stringify(updated));
     window.dispatchEvent(new Event("snitch-storage-update"));
   };
@@ -73,15 +96,18 @@ function Wishlist() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 sm:gap-6">
-            {wishlistProducts.map((product) => {
+            {wishlistProducts.map((entry) => {
+              const product = entry.product;
+              const variant = entry.variant;
               const image =
+                variant?.images?.[0]?.url ||
                 product?.images?.[0]?.url ||
                 "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=900&q=80&auto=format&fit=crop";
               const inCart = cartIds.includes(product?._id);
 
               return (
                 <article
-                  key={product?._id}
+                  key={`${product?._id}-${variant?._id || "default"}`}
                   onClick={() => navigate(`/product/${product?._id}`)}
                   className="group cursor-pointer rounded-2xl bg-white border border-stone-200 overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
                 >
@@ -98,9 +124,16 @@ function Wishlist() {
                       {product?.title}
                     </h2>
                     <p className="mt-1 text-base font-semibold">
-                      {product?.price?.currency || "$"}
-                      {product?.price?.amount?.toLocaleString()}
+                      {(variant?.price?.currency || product?.price?.currency || "$")}
+                      {(variant?.price?.amount ?? product?.price?.amount)?.toLocaleString()}
                     </p>
+                    {variant?.attributes && (
+                      <p className="mt-2 text-[11px] uppercase tracking-[0.12em] text-stone-500">
+                        {Object.entries(variant.attributes)
+                          .map(([k, v]) => `${k}: ${v}`)
+                          .join(" | ")}
+                      </p>
+                    )}
                     <div className="mt-4 flex items-center gap-2">
                       <button
                         onClick={(e) => {
@@ -118,7 +151,7 @@ function Wishlist() {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          removeFromWishlist(product?._id);
+                          removeFromWishlist(product?._id, variant?._id || null);
                         }}
                         className="px-4 cursor-pointer rounded-full py-2.5 text-xs uppercase tracking-[0.16em] bg-stone-200 text-stone-700 hover:bg-stone-300 transition"
                       >

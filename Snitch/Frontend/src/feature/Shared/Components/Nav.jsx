@@ -5,6 +5,16 @@ import { useAuth } from "../../Auth/Hooks/auth.hooks";
 import { setuser } from "../../Auth/state/auth.slice";
 import { usecart } from "../../Cart/hook/usecart";
 
+const parseStoredIds = (value) => {
+  if (!value) return [];
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
 /* ── Icons ── */
 const IconProfile = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
@@ -100,6 +110,7 @@ function Nav({
     : 0;
   const [userData, setUserData] = useState(null);
   const [showProfilePopup, setShowProfilePopup] = useState(false);
+  const [liveWishlistCount, setLiveWishlistCount] = useState(0);
   const { handelgetme } = useAuth();
   const { handleGetCart } = usecart();
 
@@ -115,8 +126,26 @@ function Nav({
       .catch(() => {});
   }, []);
 
+  useEffect(() => {
+    const syncWishlistCount = () => {
+      const storedWishlist = localStorage.getItem("wishlistProductIds");
+      setLiveWishlistCount(parseStoredIds(storedWishlist).length);
+    };
+
+    syncWishlistCount();
+    window.addEventListener("snitch-storage-update", syncWishlistCount);
+    window.addEventListener("storage", syncWishlistCount);
+
+    return () => {
+      window.removeEventListener("snitch-storage-update", syncWishlistCount);
+      window.removeEventListener("storage", syncWishlistCount);
+    };
+  }, []);
+
   const isLoggedIn = Boolean(reduxUser || userData);
   const profileData = userData || reduxUser || null;
+  const resolvedWishlistCount =
+    typeof wishlistCount === "number" ? wishlistCount : liveWishlistCount;
 
   const handleLogout = () => {
     setUserData(null);
@@ -168,7 +197,7 @@ function Nav({
           {/* Wishlist */}
           <NavIconBtn
             label="Wishlist"
-            badge={wishlistCount > 0 ? wishlistCount : null}
+            badge={resolvedWishlistCount > 0 ? resolvedWishlistCount : null}
             onClick={() => { if (onWishlistClick) { onWishlistClick(); return; } navigate("/product/wishlist"); }}
           >
             <IconHeart />

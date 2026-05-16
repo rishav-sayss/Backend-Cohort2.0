@@ -15,6 +15,18 @@ const parseStoredIds = (value) => {
   }
 };
 
+const normalizeWishlistEntries = (entries = []) => {
+  return entries
+    .map((entry) => {
+      if (typeof entry === "string") return { productId: entry, variantId: null };
+      if (entry && typeof entry === "object" && entry.productId) {
+        return { productId: entry.productId, variantId: entry.variantId || null };
+      }
+      return null;
+    })
+    .filter(Boolean);
+};
+
 const HEART_ICON = (filled) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -56,7 +68,7 @@ function AllProducts() {
 
   const [activeCategory, setActiveCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [wishlistIds, setWishlistIds] = useState([]);
+  const [wishlistEntries, setWishlistEntries] = useState([]);
  
   useEffect(() => {
     handelgetallproducts();
@@ -64,7 +76,7 @@ function AllProducts() {
 
   useEffect(() => {
     const storedWishlist = localStorage.getItem("wishlistProductIds");
-    setWishlistIds(parseStoredIds(storedWishlist));
+    setWishlistEntries(normalizeWishlistEntries(parseStoredIds(storedWishlist)));
     
   }, []);
 
@@ -85,11 +97,11 @@ function AllProducts() {
 
   const toggleWishlist = (e, productId) => {
     e.stopPropagation();
-    // console.log(productId)
-    const updated = wishlistIds.includes(productId)
-      ? wishlistIds.filter((id) => id !== productId)
-      : [...wishlistIds, productId];
-    setWishlistIds(updated);
+    const isLiked = wishlistEntries.some((entry) => entry.productId === productId);
+    const updated = isLiked
+      ? wishlistEntries.filter((entry) => entry.productId !== productId)
+      : [...wishlistEntries, { productId, variantId: null }];
+    setWishlistEntries(updated);
     localStorage.setItem("wishlistProductIds", JSON.stringify(updated));
     window.dispatchEvent(new Event("snitch-storage-update"));
   };
@@ -122,7 +134,7 @@ function AllProducts() {
                 const image =
                   product?.images?.[0]?.url ||
                   "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=900&q=80&auto=format&fit=crop";
-                const isLiked = wishlistIds.includes(product?._id);
+                const isLiked = wishlistEntries.some((entry) => entry.productId === product?._id);
                
                 return (
                   <article
@@ -149,7 +161,7 @@ function AllProducts() {
                       </div>
                       <button
                         onClick={(e) => toggleWishlist(e, product?._id)}
-                        className={`absolute right-3 top-3 h-9 w-9 rounded-full grid place-items-center border transition ${
+                        className={`absolute cursor-pointer right-3 top-3 h-9 w-9 rounded-full grid place-items-center border transition ${
                           isLiked
                             ? "bg-stone-900 text-white border-stone-900"
                             : "bg-white/90 text-stone-800 border-stone-200 hover:bg-white"

@@ -3,11 +3,34 @@ import { useParams, Link, useNavigate } from 'react-router';
 import {  UseProduct } from '../Hooks/useProduct';
 import {  usecart } from '../../Cart/hook/usecart';
 
+const parseStoredIds = (value) => {
+    if (!value) return [];
+    try {
+        const parsed = JSON.parse(value);
+        return Array.isArray(parsed) ? parsed : [];
+    } catch {
+        return [];
+    }
+};
+
+const normalizeWishlistEntries = (entries = []) => {
+    return entries
+        .map((entry) => {
+            if (typeof entry === "string") return { productId: entry, variantId: null };
+            if (entry && typeof entry === "object" && entry.productId) {
+                return { productId: entry.productId, variantId: entry.variantId || null };
+            }
+            return null;
+        })
+        .filter(Boolean);
+};
+
 const ProductDetail = () => {
     const { productId } = useParams();
     const [ product, setProduct ] = useState(null);
     const [ selectedImage, setSelectedImage ] = useState(0);
     const [ selectedAttributes, setSelectedAttributes ] = useState({});
+    const [wishlistEntries, setWishlistEntries] = useState([]);
     const navigate = useNavigate();
     const {  handleGetProductById } =  UseProduct();
     const {handelAdditem} =  usecart()
@@ -28,7 +51,11 @@ const ProductDetail = () => {
         setSelectedImage(0);
         fetchProductDetails();
     }, [ productId ]);
- 
+
+    useEffect(() => {
+        const storedWishlist = localStorage.getItem("wishlistProductIds");
+        setWishlistEntries(normalizeWishlistEntries(parseStoredIds(storedWishlist)));
+    }, []);
 
     // Determine currently selected variant (null if not explicitly chosen)
     const activeVariant = useMemo(() => {
@@ -44,6 +71,23 @@ const ProductDetail = () => {
 
     // Ensure users actually select a variant; don't silently default to the first one.
     const selectedVariantId = activeVariant?._id || activeVariant?.id || null;
+
+    const isWishlisted = wishlistEntries.some(
+        (entry) => entry.productId === productId && entry.variantId === selectedVariantId
+    );
+
+    const toggleWishlist = () => {
+        const targetVariantId = selectedVariantId || null;
+
+        const updated = isWishlisted
+            ? wishlistEntries.filter(
+                (entry) => !(entry.productId === productId && entry.variantId === targetVariantId)
+            )
+            : [...wishlistEntries, { productId, variantId: targetVariantId }];
+        setWishlistEntries(updated);
+        localStorage.setItem("wishlistProductIds", JSON.stringify(updated));
+        window.dispatchEvent(new Event("snitch-storage-update"));
+    };
 
     const availableAttributes = useMemo(() => {
         if (!product?.variants) return {};
@@ -246,33 +290,49 @@ const ProductDetail = () => {
 
                             {/* Actions */}
                             <div className="flex flex-col gap-4 mt-auto">
-                                <button
-                                    className="w-full py-4 cursor-pointer text-[11px] uppercase tracking-[0.25em] font-medium transition-all duration-300"
-                                    style={{
-                                        backgroundColor: selectedVariantId ? '#1b1c1a' : '#b8b8b8',
-                                        color: '#fbf9f6',
-                                        fontFamily: "'Inter', sans-serif"
-                                    }}
-                                    disabled={!selectedVariantId}
-                                    onMouseEnter={e => {
-                                        if (!selectedVariantId) return;
-                                        e.currentTarget.style.backgroundColor = '#C9A96E';
-                                        e.currentTarget.style.color = '#1b1c1a';
-                                    }}
-                                    onMouseLeave={e => {
-                                        e.currentTarget.style.backgroundColor = selectedVariantId ? '#1b1c1a' : '#b8b8b8';
-                                        e.currentTarget.style.color = '#fbf9f6';
-                                    }}
-                                    onClick={() => {
-                                        if (!selectedVariantId) return;
-                                         handelAdditem({
-                                            productId: product._id,
-                                            variantId: selectedVariantId
-                                        })
-                                    }}
-                                >
-                                    {selectedVariantId ? 'Add to Cart' : 'Select a Variant'}
-                                </button>
+                                <div className="flex items-stretch gap-3">
+                                    <button
+                                        className="flex-1 py-4 cursor-pointer text-[11px] uppercase tracking-[0.25em] font-medium transition-all duration-300"
+                                        style={{
+                                            backgroundColor: selectedVariantId ? '#1b1c1a' : '#b8b8b8',
+                                            color: '#fbf9f6',
+                                            fontFamily: "'Inter', sans-serif"
+                                        }}
+                                        disabled={!selectedVariantId}
+                                        onMouseEnter={e => {
+                                            if (!selectedVariantId) return;
+                                            e.currentTarget.style.backgroundColor = '#C9A96E';
+                                            e.currentTarget.style.color = '#1b1c1a';
+                                        }}
+                                        onMouseLeave={e => {
+                                            e.currentTarget.style.backgroundColor = selectedVariantId ? '#1b1c1a' : '#b8b8b8';
+                                            e.currentTarget.style.color = '#fbf9f6';
+                                        }}
+                                        onClick={() => {
+                                            if (!selectedVariantId) return;
+                                            handelAdditem({
+                                                productId: product._id,
+                                                variantId: selectedVariantId
+                                            })
+                                        }}
+                                    >
+                                        {selectedVariantId ? 'Add to Cart' : 'Select a Variant'}
+                                    </button>
+
+                                    <button
+                                        onClick={toggleWishlist}
+                                        className={`w-12 h-12 rounded-full border flex items-center justify-center transition-all duration-300 cursor-pointer ${
+                                            isWishlisted
+                                                ? 'bg-[#1b1c1a] border-[#1b1c1a] text-[#fbf9f6]'
+                                                : 'bg-transparent border-[#d0c5b5] text-[#1b1c1a] hover:border-[#1b1c1a]'
+                                        }`}
+                                        aria-label="Toggle wishlist"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill={isWishlisted ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8" className="w-5 h-5">
+                                            <path d="M12 21s-7.2-4.35-9.54-8.31C.76 9.83 2.45 6.4 5.65 5.59c2.08-.52 4.16.2 5.35 1.88 1.2-1.68 3.27-2.4 5.35-1.88 3.2.8 4.89 4.24 3.19 7.1C19.2 16.65 12 21 12 21z" />
+                                        </svg>
+                                    </button>
+                                </div>
 
                                 <button
                                     className="w-full cursor-pointer py-4 text-[11px] uppercase tracking-[0.25em] font-medium transition-all duration-300 border"
