@@ -3,11 +3,26 @@ import { createSlice } from "@reduxjs/toolkit";
 const cartslice = createSlice({
   name: "cart",
   initialState: {
+    totalPrice: 0,
+    currency: "INR",
     items: [],
   },
   reducers: {
     setcart: (state, action) => {
-      state.items = action.payload;
+      const payload = action.payload;
+
+      // Support both payload styles:
+      // 1) direct items array
+      // 2) object containing { items, totalPrice/totalprice, currency }
+      if (Array.isArray(payload)) {
+        state.items = payload;
+        return;
+      }
+
+      const nextItems = Array.isArray(payload?.items) ? payload.items : [];
+      state.items = nextItems;
+      state.totalPrice = payload?.totalPrice ?? payload?.totalprice ?? 0;
+      state.currency = payload?.currency ?? "INR";
     },
     additem: (state, action) => {
       state.items.push(action.payload);
@@ -47,6 +62,7 @@ const cartslice = createSlice({
   },
 });
 
-export const { setcart, additem, incrementCartItem  , decrementCartItem} = cartslice.actions;
+export const { setcart, additem, incrementCartItem, decrementCartItem } =
+  cartslice.actions;
 
 export default cartslice.reducer;

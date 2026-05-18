@@ -79,7 +79,10 @@ function CartItem({ item, onQuantityChange, onRemove, loadingId }) {
   const isLoading = loadingId === itemId;
 
   /* resolve variant info */
-  const variant = product?.variants?.find(v => v._id === variantId);
+  const variantValue = product?.variants;
+  const variant = Array.isArray(variantValue)
+    ? variantValue.find(v => String(v?._id) === String(variantId))
+    : (variantValue && String(variantValue?._id) === String(variantId) ? variantValue : variantValue || null);
   const imageUrl =
     variant?.images?.[0]?.url ||
     product?.images?.[0]?.url ||
@@ -319,6 +322,7 @@ function Cart() {
               {items.map((item, idx) => (
                 <React.Fragment key={item._id}>
                   <CartItem
+                   
                     item={item}
                     onQuantityChange={handleQuantityChange}
                     onRemove={handleRemove}

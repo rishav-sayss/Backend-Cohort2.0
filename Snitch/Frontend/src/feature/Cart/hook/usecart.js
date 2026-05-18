@@ -7,11 +7,28 @@ import {
 } from "../service/cart.service";
 import { useDispatch } from "react-redux";
 import {
-  additem as additemtocart,
   setcart,
   incrementCartItem,
   decrementCartItem
 } from "../state/cart.slice";
+
+const normalizeCartPayload = (response) => {
+  const cart =
+    response?.cart ??
+    response?.data?.cart ??
+    response?.payload?.cart ??
+    response;
+
+  if (Array.isArray(cart)) {
+    return { items: cart, totalPrice: 0, currency: "INR" };
+  }
+
+  return {
+    items: Array.isArray(cart?.items) ? cart.items : [],
+    totalPrice: cart?.totalPrice ?? cart?.totalprice ?? 0,
+    currency: cart?.currency ?? "INR",
+  };
+};
 
 export const usecart = () => {
   const dispatch = useDispatch();
@@ -24,29 +41,22 @@ export const usecart = () => {
 
   async function handleGetCart() {
     const data = await getCart();
-    const items = Array.isArray(data.cart)
-      ? data.cart
-      : (data.cart?.items ?? []);
-    dispatch(setcart(items));
+    dispatch(setcart(normalizeCartPayload(data)));
   }
 
   async function handleIncrementCartItem({ productId, variantId }) {
-    // console.log( productId, variantId)
     await incrementCartItemApi({ productId, variantId });
     dispatch(incrementCartItem({ productId, variantId }));
   }
 
   async function handledecrementCartItem({ productId, variantId }) {
-    await  decrementCartItemApi({ productId, variantId });
-    dispatch( decrementCartItem({ productId, variantId }));
+    await decrementCartItemApi({ productId, variantId });
+    dispatch(decrementCartItem({ productId, variantId }));
   }
 
   async function handleRemoveItem({ itemId }) {
     const data = await removeItem({ itemId });
-    const items = Array.isArray(data.cart)
-      ? data.cart
-      : (data.cart?.items ?? []);
-    dispatch(setcart(items));
+    dispatch(setcart(normalizeCartPayload(data)));
   }
 
   return {
