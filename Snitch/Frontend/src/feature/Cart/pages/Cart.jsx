@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router";
 import { usecart } from "../hook/usecart";
+import { useRazorpay } from "react-razorpay";
 /* ─── Design tokens (Aura Editorial) ─── */
 const C = {
   bg: "#fbf9f6",
@@ -271,7 +272,9 @@ function Cart() {
   const [loadingId, setLoadingId] = useState(null); // item _id being mutated
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [checkoutError, setCheckoutError] = useState("");
+      const { error, isLoading, Razorpay } = useRazorpay();
   const user = useSelector((state) => state.user);
+
   useEffect(() => {
     handleGetCart();
   }, []);
@@ -296,7 +299,6 @@ function Cart() {
       const order = await handleCreateCartOrder();
       if (!order?.id) throw new Error("Order creation failed");
 
-      const { default: Razorpay } = await import("react-razorpay");
       const options = {
         key: "rzp_test_SrTul3APi5VYqD",
         amount: order.amount, // Amount in paise
