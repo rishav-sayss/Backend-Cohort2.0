@@ -2,6 +2,9 @@ import cartmodel from "../models/cart.model.js";
 import productmodel from "../models/product.model.js";
 import { stockofvariants } from "../dao/product.dao.js";
 import mongoose from "mongoose";
+import { createOrder } from "../service/payment.service.js";
+import { getCartDetails } from "../dao/cart.dao.js";
+import paymentModel from "../models/payment.model.js"
 
 export const addtocart = async (req, res) => {
   const { productId, variantId } = req.params;
@@ -94,55 +97,7 @@ export const addtocart = async (req, res) => {
 export const getcart = async (req, res) => {
   const user = req.user;
 
-  let cart =
-    (await cartmodel.aggregate([
-      {
-        $match: {
-          user: new mongoose.Types.ObjectId(user._id),
-        },
-      },
-      { $unwind: { path: "$items" } },
-      {
-        $lookup: {
-          from: "products",
-          localField: "items.product",
-          foreignField: "_id",
-          as: "items.product",
-        },
-      },
-      { $unwind: { path: "$items.product" } },
-      {
-        $unwind: { path: "$items.product.variants" },
-      },
-      {
-        $match: {
-          $expr: {
-            $eq: ["$items.variant", "$items.product.variants._id"],
-          },
-        },
-      },
-      {
-        $addFields: {
-          itemprice: {
-            price: {
-              $multiply: ["$items.quantity", "$items.product.price.amount"],
-            },
-            currency: "$items.product.price.currency",
-          },
-        },
-      },
-      {
-        $group: {
-          _id: "$_id",
-          totalprice: { $sum: "$itemprice.price" },
-          currency: {
-            $first: "$itemprice.currency",
-          },
-          // keep key name consistent for frontend and reducers
-          items: { $push: "$items" },
-        },
-      },
-    ]))[0];
+  let cart = await getCartDetails(user._id);
 
   if (!cart) {
     cart = await cartmodel.create({ user: user._id });
@@ -317,5 +272,51 @@ export const removeCartItem = async (req, res) => {
     message: "Item removed from cart successfully",
     success: true,
     cart,
+  });
+};
+
+export const createOrderController = async (req, res) => {
+  let cart = await getCartDetails(req.user._id);
+console.log(cart)
+  if (!cart) {
+    return res.status(400).json({
+      message: "Cart is empty",
+      success: false,
+    });
+  }
+
+  const order = await createOrder({
+    amount: cart.totalprice,
+    currency: cart.currency,
+  });
+
+  const payment = await paymentModel.create({
+    user: req.user._id,
+    razorpay: {
+      orderId: order.id,
+    },
+    price: {
+      amount: cart.totalprice,
+      currency: cart.currency,
+    },
+    orderItems: cart.items.map((item) => ({
+      title: item.product.title,
+      productId: item.product._id,
+      variantId: item.variant,
+      quantity: item.quantity,
+      images: item.product.variants.images || item.product.images,
+      description: item.product.description,
+      price: {
+        amount: item.product.variants.price.amount || item.product.price.amount,
+        currency:
+          item.product.variants.price.currency || item.product.price.currency,
+      },
+    })),
+  });
+
+  return res.status(200).json({
+    message: "Order created successfully",
+    success: true,
+    order,
   });
 };

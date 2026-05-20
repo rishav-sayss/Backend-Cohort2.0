@@ -3,13 +3,14 @@ import {
   getCart,
   removeItem,
   incrementCartItemApi,
-  decrementCartItemApi
+  decrementCartItemApi,
+  createCartOrder
 } from "../service/cart.service";
 import { useDispatch } from "react-redux";
 import {
   setcart,
   incrementCartItem,
-  decrementCartItem
+  decrementCartItem,
 } from "../state/cart.slice";
 
 const normalizeCartPayload = (response) => {
@@ -59,11 +60,17 @@ export const usecart = () => {
     dispatch(setcart(normalizeCartPayload(data)));
   }
 
+  async function handleCreateCartOrder() {
+    const data = await createCartOrder();
+    return data.order;
+  }
+
   return {
     handelAdditem,
     handleGetCart,
     handleIncrementCartItem,
     handledecrementCartItem,
     handleRemoveItem,
+    handleCreateCartOrder
   };
 };

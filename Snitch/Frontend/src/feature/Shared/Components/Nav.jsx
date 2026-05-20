@@ -116,14 +116,7 @@ function Nav({
 
   useEffect(() => {
     handelgetme()
-      .then((d) => {
-        if (d) {
-          setUserData(d);
-          dispatch(setuser(d)); // persist in Redux so cart icon stays visible on all pages
-          handleGetCart().catch(() => {}); // fetch cart so badge updates on refresh
-        }
-      })
-      .catch(() => {});
+ 
   }, []);
 
   useEffect(() => {

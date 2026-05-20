@@ -20,6 +20,15 @@ if(!process.env.IMAGE_KIT_PRIVATE_KEY) {
     throw new Error("IMAGEKIT_PRIVATE_KEY is not defined in environment variables")
 }
 
+if (!process.env.TEST_API_KEY ) {
+    throw new Error("RAZORPAY_KEY_ID is not defined in environment variables")
+}
+
+if (!process.env.TEST_SECRET_KEY) {
+    throw new Error("RAZORPAY_KEY_SECRET is not defined in environment variables")
+}
+
+
  
  
 export let config = {
@@ -27,5 +36,7 @@ export let config = {
     JWT_SECRET: process.env.JWT_SECRET,
     GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
     GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
-    privateKey: process.env.IMAGE_KIT_PRIVATE_KEY
+    privateKey: process.env.IMAGE_KIT_PRIVATE_KEY,
+    testapikey: process.env.TEST_API_KEY,
+    testsecretkey:process.env.TEST_SECRET_KEY
 }
