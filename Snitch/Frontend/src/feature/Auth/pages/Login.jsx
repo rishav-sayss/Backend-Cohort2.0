@@ -25,6 +25,7 @@ function Login() {
       email: formData.email,
       password: formData.password
     })
+    if(!user) return;
     if(user.role == "buyer"){
       navigate("/")
     }

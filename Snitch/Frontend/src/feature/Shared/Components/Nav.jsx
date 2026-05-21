@@ -244,7 +244,7 @@ function Nav({
                 {[
                   ["Name", profileData.fullName || profileData.fullname || profileData.name],
                   ["Email", profileData.email],
-                  ["Phone", profileData.phone],
+                  ["Phone", profileData.phone || profileData.contact],
                   ["Role", profileData.role || "User"],
                 ].map(([label, value]) => value && (
                   <div key={label} className="flex gap-3">
