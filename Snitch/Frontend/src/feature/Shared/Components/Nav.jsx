@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
-import { useAuth } from "../../Auth/Hooks/auth.hooks";
 import { setuser } from "../../Auth/state/auth.slice";
-import { usecart } from "../../Cart/hook/usecart";
 
 const parseStoredIds = (value) => {
   if (!value) return [];
@@ -111,13 +109,6 @@ function Nav({
   const [userData, setUserData] = useState(null);
   const [showProfilePopup, setShowProfilePopup] = useState(false);
   const [liveWishlistCount, setLiveWishlistCount] = useState(0);
-  const { handelgetme } = useAuth();
-  const { handleGetCart } = usecart();
-
-  useEffect(() => {
-    handelgetme()
- 
-  }, []);
 
   useEffect(() => {
     const syncWishlistCount = () => {

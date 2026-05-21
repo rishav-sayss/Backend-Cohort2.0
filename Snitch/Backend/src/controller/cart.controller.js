@@ -6,6 +6,7 @@ import { createOrder } from "../service/payment.service.js";
 import { getCartDetails } from "../dao/cart.dao.js";
 import paymentModel from "../models/payment.model.js";
 import { config } from "../config/config.js";
+import { validatePaymentVerification } from "razorpay/dist/utils/razorpay-utils.js";
 
 export const addtocart = async (req, res) => {
   const { productId, variantId } = req.params;

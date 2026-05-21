@@ -273,7 +273,7 @@ function Cart() {
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [checkoutError, setCheckoutError] = useState("");
       const { error, isLoading, Razorpay } = useRazorpay();
-  const user = useSelector((state) => state.user);
+  const user = useSelector((state) => state.auth?.user);
 
   useEffect(() => {
     handleGetCart();
@@ -296,6 +296,13 @@ function Cart() {
     setCheckoutError("");
     setCheckoutLoading(true);
     try {
+      if (error) {
+        throw new Error(error?.description || "Razorpay failed to initialize");
+      }
+      if (!Razorpay) {
+        throw new Error("Payment SDK not loaded. Please refresh and try again.");
+      }
+
       const order = await handleCreateCartOrder();
       if (!order?.id) throw new Error("Order creation failed");
 
@@ -324,7 +331,11 @@ function Cart() {
       razorpayInstance.open();
     } catch (err) {
       console.error("Checkout failed", err);
-      setCheckoutError("Checkout failed. Please try again.");
+      setCheckoutError(
+        err?.response?.data?.message ||
+          err?.message ||
+          "Checkout failed. Please try again.",
+      );
     } finally {
       setCheckoutLoading(false);
     }
