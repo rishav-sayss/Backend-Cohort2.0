@@ -128,7 +128,7 @@ function Nav({
   }, []);
 
   const hasSessionLogin = sessionStorage.getItem("snitch_logged_in") === "true";
-  const isLoggedIn = !authLoading && Boolean(reduxUser) && hasSessionLogin;
+  const isLoggedIn = (!authLoading && Boolean(reduxUser)) || hasSessionLogin;
   const profileData = userData || reduxUser || null;
   const resolvedWishlistCount =
     typeof wishlistCount === "number" ? wishlistCount : liveWishlistCount;
