@@ -17,6 +17,7 @@ export const useAuth = () => {
         const data = await login({ email, password })
         console.log(data.user)
         dispatch(setuser(data.user))
+        sessionStorage.setItem("snitch_logged_in", "true")
 
         return  data.user
     }

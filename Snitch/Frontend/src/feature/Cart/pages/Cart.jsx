@@ -293,35 +293,54 @@ function Cart() {
   const total = subtotal - discount + shipping;
 
   async function handelcheckout() {
-    const order = await handleCreateCartOrder();
-    console.log(order);
+    if (isLoading) {
+      setCheckoutError("Payment gateway is loading. Please try again in a few seconds.");
+      return;
+    }
 
-    const options = {
-      key: "rzp_test_ShNSkpxt3emQVJ",
-      amount: order.amount, // Amount in paise
-      currency: order.currency,
-      name: "Snitch",
-      description: "Test Transaction",
-      order_id: order.id, // Generate order_id on server
-      handler: async (response) => {
-        const isValid = await handleVerifyCartOrder(response);
+    if (error || typeof Razorpay !== "function") {
+      setCheckoutError("Unable to load payment gateway right now. Please refresh and try again.");
+      return;
+    }
 
-        if (isValid) {
-          navigate(`/order-success?order_id=${response?.razorpay_order_id}`);
-        }
-      },
-      prefill: {
-        name: user?.fullname,
-        email: user?.email,
-        contact: user?.contact,
-      },
-      theme: {
-        color: C.gold,
-      },
-    };
+    setCheckoutLoading(true);
+    setCheckoutError("");
+    try {
+      const order = await handleCreateCartOrder();
+      console.log(order);
 
-    const razorpayInstance = new Razorpay(options);
-    razorpayInstance.open();
+      const options = {
+        key: "rzp_test_ShNSkpxt3emQVJ",
+        amount: order.amount, // Amount in paise
+        currency: order.currency,
+        name: "Snitch",
+        description: "Test Transaction",
+        order_id: order.id, // Generate order_id on server
+        handler: async (response) => {
+          const isValid = await handleVerifyCartOrder(response);
+
+          if (isValid) {
+            navigate(`/order-success?order_id=${response?.razorpay_order_id}`);
+          }
+        },
+        prefill: {
+          name: user?.fullname,
+          email: user?.email,
+          contact: user?.contact,
+        },
+        theme: {
+          color: C.gold,
+        },
+      };
+
+      const razorpayInstance = new Razorpay(options);
+      razorpayInstance.open();
+    } catch (checkoutErr) {
+      console.error("Checkout failed", checkoutErr);
+      setCheckoutError("Checkout failed. Please try again.");
+    } finally {
+      setCheckoutLoading(false);
+    }
   }
 
   /* ─── handlers ─── */

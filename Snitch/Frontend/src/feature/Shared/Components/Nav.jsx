@@ -102,6 +102,7 @@ function Nav({
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const reduxUser = useSelector((state) => state.auth.user);
+  const authLoading = useSelector((state) => state.auth.loading);
   const cartItems = useSelector((state) => state.cart.items);  // live cart from Redux
   const liveCartCount = Array.isArray(cartItems)
     ? cartItems.reduce((sum, item) => sum + (item.quantity || 1), 0)
@@ -126,7 +127,8 @@ function Nav({
     };
   }, []);
 
-  const isLoggedIn = Boolean(reduxUser || userData);
+  const hasSessionLogin = sessionStorage.getItem("snitch_logged_in") === "true";
+  const isLoggedIn = !authLoading && Boolean(reduxUser) && hasSessionLogin;
   const profileData = userData || reduxUser || null;
   const resolvedWishlistCount =
     typeof wishlistCount === "number" ? wishlistCount : liveWishlistCount;
@@ -134,6 +136,7 @@ function Nav({
   const handleLogout = () => {
     setUserData(null);
     dispatch(setuser(null));
+    sessionStorage.removeItem("snitch_logged_in");
     setShowProfilePopup(false);
     navigate("/login");
   };

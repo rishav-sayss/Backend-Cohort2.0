@@ -11,7 +11,10 @@ function App() {
   // console.log(user)
   
   useEffect(() => {
-     handelgetme()
+     const hasSessionLogin = sessionStorage.getItem("snitch_logged_in") === "true";
+     if (hasSessionLogin) {
+      handelgetme();
+     }
   },[])
 
   return (
