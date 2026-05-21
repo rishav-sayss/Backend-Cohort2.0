@@ -29,9 +29,11 @@ export const useAuth = () => {
             const data = await getme()
             
             dispatch(setuser(data.user))
+            sessionStorage.setItem("snitch_logged_in", "true")
             return data.user
         } catch (err) {
             // console.log(err)
+            sessionStorage.removeItem("snitch_logged_in")
             return null
         } finally {
             dispatch(setloading(false))
