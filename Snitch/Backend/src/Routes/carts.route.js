@@ -1,7 +1,7 @@
 import express from  "express"
 import { authmiddelewere } from "../middelwere/Auth.middelwere.js"
 import { validateAddToCart , validateIncrementCartItemQuantity } from "../validator/cart.validater.js"
-import { addtocart, getcart ,incrementCartItemQuantity , decrementCartItemQuantity, removeCartItem ,createOrderController } from "../controller/cart.controller.js"
+import { addtocart, getcart ,incrementCartItemQuantity , decrementCartItemQuantity, removeCartItem ,createOrderController ,verifyOrderController } from "../controller/cart.controller.js"
 const router = express.Router()
 
 
@@ -26,5 +26,7 @@ router.delete("/remove/:itemId", authmiddelewere, removeCartItem)
  * @route POST /api/cart/payment/create/order
  */
 router.post("/payment/create/order", authmiddelewere, createOrderController)
+
+router.post("/payment/verify/order",  authmiddelewere, verifyOrderController)
 
 export default router
