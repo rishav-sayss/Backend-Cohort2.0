@@ -2,7 +2,7 @@ import axios from "axios"
 import {setproducts} from "../state/product.state"
 
 let productApiInstance  = axios.create({
-    baseURL: "http://localhost:3000/api/product",
+    baseURL: "https://backend-cohort2-0-4.onrender.com/api/product",
     withCredentials:true
 })
 
