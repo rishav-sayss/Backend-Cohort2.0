@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router";
-import useRazorpay from "react-razorpay";
+import { useRazorpay } from "react-razorpay";
 import { usecart } from "../hook/usecart";
 /* ─── Design tokens (Aura Editorial) ─── */
 const C = {
@@ -274,7 +274,7 @@ function Cart() {
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [checkoutError, setCheckoutError] = useState("");
   const user = useSelector((state) => state.auth?.user);
-  const [Razorpay] = useRazorpay();
+   const { error, isLoading, Razorpay } = useRazorpay();
   useEffect(() => {
     handleGetCart();
   }, []);
