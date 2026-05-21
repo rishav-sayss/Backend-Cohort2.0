@@ -15,6 +15,7 @@ let serverstart = async () => {
     app.get("/", (req, res) => {
       res.send("Backend is running successfully");
     });
+    
   } catch (error) {
     console.error("Failed to start server:", error.message);
     process.exit(1);

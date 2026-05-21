@@ -108,7 +108,7 @@ export const googleCallback = async (req, res) => {
 
      res.cookie("token", token)
 
-     res.redirect("http://localhost:5173/")
+     res.redirect("https://backend-cohort2-0.vercel.app/")
 }
 
 export const getme = async (req, res) => {
