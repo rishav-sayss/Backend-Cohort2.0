@@ -1,130 +1,130 @@
-import userModel from "../models/auth.model.js"
-import jwt from "jsonwebtoken"
-import { config } from "../config/config.js"
+import userModel from "../models/auth.model.js";
+import jwt from "jsonwebtoken";
+import { config } from "../config/config.js";
 
 let sendtokenresponse = async (user, res, message) => {
+  let token = jwt.sign({ id: user._id }, config.JWT_SECRET, {
+    expiresIn: "7d",
+  });
 
-     let token = jwt.sign({ id: user._id }, config.JWT_SECRET, { expiresIn: "7d" })
+  await res.cookie("token", token, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none",
+  });
 
-     await res.cookie("token", token)
-
-     res.status(200).json({
-          message,
-          success: true,
-          user: {
-               id: user._id,
-               email: user.email,
-               contact: user.contact,
-               fullname: user.fullname,
-               role: user.role
-          }
-     })
-
-}
+  res.status(200).json({
+    message,
+    success: true,
+    user: {
+      id: user._id,
+      email: user.email,
+      contact: user.contact,
+      fullname: user.fullname,
+      role: user.role,
+    },
+  });
+};
 
 export const register = async (req, res) => {
-     // console.log(req.body)
-     const { email, contact, password, fullname, isSeller } = req.body;
-     try {
+  // console.log(req.body)
+  const { email, contact, password, fullname, isSeller } = req.body;
+  try {
+    const existingUser = await userModel.findOne({
+      $or: [{ email }, { contact }],
+    });
 
-          const existingUser = await userModel.findOne({
-               $or: [
-                    { email },
-                    { contact }
-               ]
-          })
+    if (existingUser) {
+      return res
+        .status(400)
+        .json({ message: "User with this email or contact already exists" });
+    }
 
-          if (existingUser) {
-               return res.status(400).json({ message: "User with this email or contact already exists" });
-          }
+    const user = await userModel.create({
+      email,
+      contact,
+      password,
+      fullname,
+      role: isSeller ? "seller" : "buyer",
+    });
 
-          const user = await userModel.create({
-               email,
-               contact,
-               password,
-               fullname,
-               role: isSeller ? "seller" : "buyer"
-          })
-
-          await sendtokenresponse(user, res, "User registered successfully")
-
-
-     } catch (error) {
-          return res.status(400).json({
-               message: error.message,
-               errors: error.errors
-          });
-     }
-}
+    await sendtokenresponse(user, res, "User registered successfully");
+  } catch (error) {
+    return res.status(400).json({
+      message: error.message,
+      errors: error.errors,
+    });
+  }
+};
 
 export const login = async (req, res) => {
-      
-     let { email, password } = req.body
-      
-     const user = await userModel.findOne({ email });
-    
-     if (!user) {
-          return res.status(400).json({ message: "Invalid email or password" });
-     }
+  let { email, password } = req.body;
 
-     if (user.googleId) {
-          return res.status(400).json({
-               message: "Please login with Google"
-          });
-     }
+  const user = await userModel.findOne({ email });
 
-     let ismatch = await user.comparePassword(password)
+  if (!user) {
+    return res.status(400).json({ message: "Invalid email or password" });
+  }
 
-     if (!ismatch) {
-          return res.status(400).json({ message: "Invalid email or password" });
-     }
+  if (user.googleId) {
+    return res.status(400).json({
+      message: "Please login with Google",
+    });
+  }
 
-     await sendtokenresponse(user, res, "User logged in successfully")
+  let ismatch = await user.comparePassword(password);
 
-}
+  if (!ismatch) {
+    return res.status(400).json({ message: "Invalid email or password" });
+  }
+
+  await sendtokenresponse(user, res, "User logged in successfully");
+};
 
 export const googleCallback = async (req, res) => {
-     let { id, displayName, emails, photos } = req.user
-     const email = emails[0].value;
-     const profilePic = photos[0].value;
+  let { id, displayName, emails, photos } = req.user;
+  const email = emails[0].value;
+  const profilePic = photos[0].value;
 
-     let user = await userModel.findOne({
-          email
-     })
+  let user = await userModel.findOne({
+    email,
+  });
 
-     if (!user) {
-          user = await userModel.create({
-               email,
-               googleId: id,
-               fullname: displayName,
-          })
-     }
+  if (!user) {
+    user = await userModel.create({
+      email,
+      googleId: id,
+      fullname: displayName,
+    });
+  }
 
-     const token = jwt.sign({
-          id: user._id,
-     }, config.JWT_SECRET, {
-          expiresIn: "7d"
-     })
+  const token = jwt.sign(
+    {
+      id: user._id,
+    },
+    config.JWT_SECRET,
+    {
+      expiresIn: "7d",
+    },
+  );
 
-     res.cookie("token", token)
+  res.cookie("token", token);
 
-     res.redirect("https://backend-cohort2-0.vercel.app/")
-}
+  res.redirect("https://backend-cohort2-0.vercel.app/");
+};
 
 export const getme = async (req, res) => {
+  let user = req.user;
 
-     let user = req.user
-
-     res.status(200).json({
-          message: "User fetched successfully",
-          success: true,
-          user: {
-               id: user._id,
-               email: user.email,
-               contact: user.contact,
-               fullname: user.fullname,
-               role: user.role
-          }
-     })
-
-}
+  res.status(200).json({
+    message: "User fetched successfully",
+    success: true,
+    user: {
+      id: user._id,
+      email: user.email,
+      contact: user.contact,
+      fullname: user.fullname,
+      role: user.role,
+    },
+  });
+};
