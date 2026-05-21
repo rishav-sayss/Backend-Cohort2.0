@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router";
+import useRazorpay from "react-razorpay";
 import { usecart } from "../hook/usecart";
-import { useRazorpay } from "react-razorpay";
 /* ─── Design tokens (Aura Editorial) ─── */
 const C = {
   bg: "#fbf9f6",
@@ -265,6 +265,7 @@ function Cart() {
     handledecrementCartItem,
     handleRemoveItem,
     handleCreateCartOrder,
+    handleVerifyCartOrder,
   } = usecart();
   const navigate = useNavigate();
   const [promoCode, setPromoCode] = useState("");
@@ -272,9 +273,8 @@ function Cart() {
   const [loadingId, setLoadingId] = useState(null); // item _id being mutated
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [checkoutError, setCheckoutError] = useState("");
-      const { error, isLoading, Razorpay } = useRazorpay();
   const user = useSelector((state) => state.auth?.user);
-
+  const [Razorpay] = useRazorpay();
   useEffect(() => {
     handleGetCart();
   }, []);
@@ -293,52 +293,35 @@ function Cart() {
   const total = subtotal - discount + shipping;
 
   async function handelcheckout() {
-    setCheckoutError("");
-    setCheckoutLoading(true);
-    try {
-      if (error) {
-        throw new Error(error?.description || "Razorpay failed to initialize");
-      }
-      if (!Razorpay) {
-        throw new Error("Payment SDK not loaded. Please refresh and try again.");
-      }
+    const order = await handleCreateCartOrder();
+    console.log(order);
 
-      const order = await handleCreateCartOrder();
-      if (!order?.id) throw new Error("Order creation failed");
+    const options = {
+      key: "rzp_test_ShNSkpxt3emQVJ",
+      amount: order.amount, // Amount in paise
+      currency: order.currency,
+      name: "Snitch",
+      description: "Test Transaction",
+      order_id: order.id, // Generate order_id on server
+      handler: async (response) => {
+        const isValid = await handleVerifyCartOrder(response);
 
-      const options = {
-        key: "rzp_test_SrTul3APi5VYqD",
-        amount: order.amount, // Amount in paise
-        currency: order.currency,
-        name: "snitch",
-        description: "Test Transaction",
-        order_id: order.id, // Generate order_id on server
-        handler: (response) => {
-          console.log(response);
-          alert("Payment Successful!");
-        },
-        prefill: {
-          name: user?.fullname,
-          email: user?.email,
-          contact: user?.contact,
-        },
-        theme: {
-          color: C.gold,
-        },
-      };
+        if (isValid) {
+          navigate(`/order-success?order_id=${response?.razorpay_order_id}`);
+        }
+      },
+      prefill: {
+        name: user?.fullname,
+        email: user?.email,
+        contact: user?.contact,
+      },
+      theme: {
+        color: C.gold,
+      },
+    };
 
-      const razorpayInstance = new Razorpay(options);
-      razorpayInstance.open();
-    } catch (err) {
-      console.error("Checkout failed", err);
-      setCheckoutError(
-        err?.response?.data?.message ||
-          err?.message ||
-          "Checkout failed. Please try again.",
-      );
-    } finally {
-      setCheckoutLoading(false);
-    }
+    const razorpayInstance = new Razorpay(options);
+    razorpayInstance.open();
   }
 
   /* ─── handlers ─── */
