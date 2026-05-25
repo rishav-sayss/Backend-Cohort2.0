@@ -1,7 +1,7 @@
 import axios from "axios";
 
 let authapiInstance = axios.create({
-   baseURL: "https://backend-cohort2-0-4.onrender.com/api/auth",
+  baseURL: "/api/auth",
   withCredentials: true,
 });
 

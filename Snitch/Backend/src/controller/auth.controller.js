@@ -82,6 +82,7 @@ export const login = async (req, res) => {
 };
 
 export const googleCallback = async (req, res) => {
+  console.log(req.user)
   let { id, displayName, emails, photos } = req.user;
   const email = emails[0].value;
   const profilePic = photos[0].value;
@@ -108,13 +109,9 @@ export const googleCallback = async (req, res) => {
     },
   );
 
-  res.cookie("token", token, {
-    httpOnly: true,
-    secure: true,
-    sameSite: "none",
-  });
+  res.cookie("token", token);
 
-  res.redirect("https://backend-cohort2-0.vercel.app/");
+  res.redirect("http://localhost:5173");
 };
 
 export const getme = async (req, res) => {

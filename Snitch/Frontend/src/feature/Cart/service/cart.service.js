@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const cartApiInstance = axios.create({
-  baseURL: "https://backend-cohort2-0-4.onrender.com/api/cart",
+  baseURL: "/api/cart",
   withCredentials: true,
 });
 

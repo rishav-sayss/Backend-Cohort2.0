@@ -2,7 +2,7 @@ import axios from "axios"
 import {setproducts} from "../state/product.state"
 
 let productApiInstance  = axios.create({
-    baseURL: "https://backend-cohort2-0-4.onrender.com/api/product",
+    baseURL: "/api/product",
     withCredentials:true
 })
 
@@ -11,7 +11,7 @@ let productApiInstance  = axios.create({
 export let CreatProduct = async (formdata)=>{
 
     let response = await productApiInstance.post("/createProduct",formdata)
-    console.log(response.data)
+    // console.log(response.data)
     return response.data
 
 }
@@ -19,6 +19,7 @@ export let CreatProduct = async (formdata)=>{
 export let getsellerproduct = async ()=>{
     
     let response = await productApiInstance.get("/getproducts")
+    console.log(response)
     return response.data
 
 }
@@ -26,6 +27,7 @@ export let getsellerproduct = async ()=>{
 export let getAllproduct = async ()=>{
 
     let response = await productApiInstance.get("/")
+    // console.log(response.data)
     return response.data
 
 }

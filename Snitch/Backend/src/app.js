@@ -11,11 +11,13 @@ let app = express()
 app.use(express.json())
 app.use(cookieparser())
 
-app.use(cors({
-     origin:"https://backend-cohort2-0.vercel.app",
-    methods: [ "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS" ],
-    credentials: true
-}))
+app.use(
+  cors({
+    origin: ["http://localhost:5173", "http://127.0.0.1:5173", "https://backend-cohort2-0.vercel.app"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    credentials: true,
+  }),
+);
 
 //google setup
 app.use(passport.initialize());
@@ -23,7 +25,7 @@ app.use(passport.initialize());
 passport.use(new GoogleStrategy({
     clientID: config.GOOGLE_CLIENT_ID,
     clientSecret: config.GOOGLE_CLIENT_SECRET,
-    callbackURL: "https://backend-cohort2-0-4.onrender.com/api/auth/google/callback"
+    callbackURL: config.GOOGLE_CALLBACK_URL
 }, (accessToken, refreshToken, profile, done) => {
     return done(null, profile);
 }))
