@@ -1,7 +1,7 @@
-import {K8sCoreApi} from "./config.js";
+import { K8sCoreApi } from "./config.js";
 
 export async function createPod(sandboxId, projectId) {
-     console.log("Creating pod:", sandboxId);
+  console.log("Creating pod:", sandboxId);
   const podManifest = {
     metadata: {
       name: `sandbox-pod-${sandboxId}`,
@@ -18,8 +18,14 @@ export async function createPod(sandboxId, projectId) {
           name: "sandbox-container",
           ports: [{ containerPort: 5173, name: "http" }],
           resources: {
-            limits: { cpu: "500m", memory: "1Gi" },
-            requests: { cpu: "250m", memory: "500Mi" },
+            limits: {
+              cpu: "250m",
+              memory: "256Mi",
+            },
+            requests: {
+              cpu: "100m",
+              memory: "128Mi",
+            },
           },
         },
       ],
