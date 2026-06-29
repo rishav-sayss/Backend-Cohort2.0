@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { ChatMistralAI } from "@langchain/mistralai"
 import { listFiles, readFiles, updateFiles } from "./tools.js";
-import { createAgent } from "langchain";
+import { createReactAgent } from "@langchain/create-react-agent";
 
 
 const model = new ChatMistralAI({
@@ -11,7 +11,7 @@ const model = new ChatMistralAI({
 })
 
 
-const agent = (createAgent({
+const agent = createReactAgent({
     model,
     tools: [ listFiles, readFiles, updateFiles ],
     systemPrompt: `
@@ -37,6 +37,7 @@ Rules:
 - When creating a new file, use a sensible absolute path consistent with the existing project layout (e.g., \`/app/src/components/Hero.jsx\`).
 - Do not delete files unless explicitly asked. To "remove" something, refactor it out and update the imports.
 - After a batch of updates, briefly confirm what changed. Do not re-print the full file contents in chat.
+- STOP after update_files
 
 ═══════════════════════════════════════════════
 WORKFLOW — EVERY TASK FOLLOWS THIS LOOP
@@ -157,9 +158,10 @@ WHAT NOT TO DO
 FINAL PRINCIPLE
 ═══════════════════════════════════════════════
 Build the thing the user would build if they were a senior frontend engineer with taste and one afternoon to spare. Default to doing more, not less. When in doubt, ship something polished and offer to refine.
-    `
-})).withConfig({
-    recursionLimit: 100
+    
+`
+}).withConfig({
+    recursionLimit: 15
 })
 
 export default agent;

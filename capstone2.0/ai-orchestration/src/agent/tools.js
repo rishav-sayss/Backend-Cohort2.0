@@ -3,19 +3,23 @@ import { tool } from "langchain";
 import * as z from "zod";
 
 export const listFiles = tool(
-  async ({}) => {
+
+  async ({},config) => {
+    console.log(config)
     console.log(" =============================================");
 
     console.log("listfiles",);
 
     console.log(" =============================================");
+
+    
     const response = await axios.get(
-      `http://sandbox-service-019ef578-9252-717e-a376-43d7968e9f79:3000/list-files`,
+      `http://sandbox-service-${config.context.projectId}:3000/list-files`,
     );
 
     
     console.log(" =============================================");
-    console.log(" readfile===", response.data);
+    console.log(" List File ===", response.data);
     console.log(" =============================================");
 
     return JSON.stringify(response.data.files);
@@ -37,7 +41,7 @@ export const readFiles = tool(
     console.log(" =============================================");
 
     const response = await axios.get(
-      `http://sandbox-service-019ef578-9252-717e-a376-43d7968e9f79:3000/read-files?files=` +
+      `http://sandbox-service-${config.context.projectId}:3000/read-files?files=` +
         files.join(","),
     );
 
@@ -62,7 +66,7 @@ export const readFiles = tool(
 );
 
 export const updateFiles = tool(
-  async ({ files }) => {
+  async ({ files} ,config) => {
     console.log(" =============================================");
 
     console.log("updatefiles", files);
@@ -70,7 +74,7 @@ export const updateFiles = tool(
     console.log(" =============================================");
 
     const response = await axios.patch(
-      `http://sandbox-service-019ef578-9252-717e-a376-43d7968e9f79:3000/update-files`,
+      `http://sandbox-service-${config.context.projectId}:3000/update-files`,
       {
         updates: files,
       },
