@@ -17,8 +17,7 @@ let authMiddelwere = async (req, res, next) => {
         message: "Unauthorized request",
       });
 
-    let user = userModel.findOne(decode._Id);
-     
+    let user = await userModel.findOne(decode._Id);
     req.user = user;
     next();
 

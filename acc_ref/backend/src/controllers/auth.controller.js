@@ -35,14 +35,14 @@ let LoginController = async (req, res) => {
     httpOnly: true,
     samSite: "lax",
     secure: false,
-    MaxAge: 10 * 60 * 1000,
+    MaxAge: 10 *  60 * 1000,
   });
 
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
     samSite: "lax",
     secure: false,
-    MaxAge: 24 * 60 * 60 * 1000,
+    MaxAge: 60 * 60 * 1000,
   });
 
   return res.status(201).json({
