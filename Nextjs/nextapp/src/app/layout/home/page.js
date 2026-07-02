@@ -1,11 +1,14 @@
-import React from 'react'
+import ProtectedRoutes from "@/component/ProtectedRoutes";
+import React from "react";
 
 function page() {
   return (
-    <div>
-      <h1> This is Home page Babyyy..  </h1>
-    </div>
-  )
+    <ProtectedRoutes>
+      <div>
+        <h1> This is Home page Babyyy.. </h1>
+      </div>
+    </ProtectedRoutes>
+  );
 }
 
-export default page
+export default page;

@@ -1,58 +1,62 @@
 import Link from "next/link";
+ 
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 function ProductCard({ product }) {
   return (
-    <div className="bg-white border rounded-xl shadow-sm hover:shadow-lg transition duration-300 overflow-hidden">
+    <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg">
+      
       {/* Product Image */}
-
-      <div className="h-64 w-full bg-gray-100 flex items-center justify-center p-4">
-        <Link href={`/layout/product/${product.id}`} >
+      <Link href={`/layout/product/${product.id}`}>
+        <div className="relative h-64 w-full bg-muted p-4 cursor-pointer">
           <img
             src={product.image}
             alt={product.title}
-            width={200}
-            height={200}
-            className="w-full h-full object-contain"
+            className="object-contain p-4"
           />
-        </Link>
-      </div>
+        </div>
+      </Link>
 
-      {/* Product Details */}
-      <div className="p-4">
+      <CardContent className="space-y-3 p-4">
+        
         {/* Category */}
-        <p className="text-sm text-blue-600 capitalize">{product.category}</p>
+        <p className="text-sm text-primary capitalize">
+          {product.category}
+        </p>
 
         {/* Title */}
-        <h2 className="font-semibold text-lg mt-2 line-clamp-2">
+        <h2 className="font-semibold text-lg line-clamp-2">
           {product.title}
         </h2>
 
         {/* Description */}
-        <p className="text-gray-500 text-sm mt-2 line-clamp-3">
+        <p className="text-sm text-muted-foreground line-clamp-3">
           {product.description}
         </p>
 
         {/* Rating */}
-        <div className="flex items-center mt-3 gap-2">
-          <span className="text-yellow-500">⭐ {product.rating.rate}</span>
+        <div className="flex items-center gap-2 text-sm">
+          <span>⭐ {product.rating.rate}</span>
 
-          <span className="text-gray-400 text-sm">
+          <span className="text-muted-foreground">
             ({product.rating.count} reviews)
           </span>
         </div>
 
-        {/* Price and Button */}
-        <div className="flex justify-between items-center mt-4">
-          <span className="text-2xl font-bold text-green-600">
+        {/* Price & Button */}
+        <div className="flex items-center justify-between pt-2">
+          <span className="text-2xl font-bold text-green-600 dark:text-green-500">
             ${product.price}
           </span>
 
-          <button className="bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800">
+          <Button size="sm">
             Add to Cart
-          </button>
+          </Button>
         </div>
-      </div>
-    </div>
+
+      </CardContent>
+    </Card>
   );
 }
 
