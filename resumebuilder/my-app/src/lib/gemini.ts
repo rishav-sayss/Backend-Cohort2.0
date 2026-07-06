@@ -5,9 +5,11 @@ const ai = new GoogleGenAI({
 });
 
 export async function generateAicontent(promt: string) {
-  const interaction = await ai.interactions.create({
+  const response = await ai.models.generateContent({
     model: "gemini-3.5-flash",
-    input: promt
+    contents: promt,
   });
-  console.log(interaction.output_text);
+
+  return response.text;
+
 }
