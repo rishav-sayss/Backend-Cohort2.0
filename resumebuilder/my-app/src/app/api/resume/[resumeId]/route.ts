@@ -1,18 +1,20 @@
 import { getcurrentuser } from "@/lib/getCurrentUser";
 import { DB } from "@/lib/mongodb";
 import ResumeModel from "@/models/resumemodel";
-import {  } from "@/types/ai.types";
+import {} from "@/types/ai.types";
 import { ApiResponse } from "@/types/api.typs";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: Promise<{ resumeId: string }> }
+  { params }: { params: Promise<{ resumeId: string }> },
 ) {
   try {
-    await  DB();
+    await DB();
 
-    const user = await  getcurrentuser();
+    console.log(params);
+
+    const user = await getcurrentuser();
     console.log("userr in get resume", user);
 
     const { resumeId } = await params;
@@ -20,7 +22,7 @@ export async function GET(
 
     const resume = await ResumeModel.findOne({
       _id: resumeId,
-    //   user_id: user.userId,
+      //   user_id: user.userId,
     });
 
     console.log("resume milaaa", resume);
@@ -31,7 +33,7 @@ export async function GET(
           success: false,
           message: "Resume not found",
         },
-        { status: 404 }
+        { status: 404 },
       );
 
     return NextResponse.json<ApiResponse>(
@@ -40,7 +42,7 @@ export async function GET(
         message: "Resume fetched successfully",
         data: resume,
       },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.log("error in get resume api", error);
@@ -49,19 +51,19 @@ export async function GET(
         success: false,
         message: "Something went wrong",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: Promise<{ resumeId: string }> }
+  { params }: { params: Promise<{ resumeId: string }> },
 ) {
   try {
-    await  DB();
+    await DB();
 
-    const user = await  getcurrentuser();
+    const user = await getcurrentuser();
 
     console.log("loggedin user", user);
 
@@ -83,7 +85,7 @@ export async function PATCH(
       {
         new: true,
         runValidators: true,
-      }
+      },
     );
 
     if (!updatedResume)
@@ -92,7 +94,7 @@ export async function PATCH(
           success: false,
           message: "resume failed to update",
         },
-        { status: 400 }
+        { status: 400 },
       );
 
     return NextResponse.json<ApiResponse>(
@@ -101,7 +103,7 @@ export async function PATCH(
         message: "Resume updated successfully",
         data: updatedResume,
       },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.log("error in updatedResume api", error);
@@ -110,7 +112,20 @@ export async function PATCH(
         success: false,
         message: "Something went wrong",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
+}
+
+export async function DELETE(
+  req: Request,
+  { params }: { params: { resumeId: string } },
+) {
+  const resumeId = params.resumeId;
+
+  await ResumeModel.findByIdAndDelete(resumeId);
+
+  return NextResponse.json({
+    success: true,
+  });
 }

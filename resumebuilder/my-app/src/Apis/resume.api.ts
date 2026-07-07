@@ -11,7 +11,7 @@ export const createResumeApi = async (payload: {
   experienceLevel: string;
 }) => {
   const response = await axios.post("/api/resume/create", payload);
-
+  console.log(response)
   return response.data;
 };
 

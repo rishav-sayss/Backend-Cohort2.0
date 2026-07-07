@@ -76,6 +76,5 @@ const resumeSchema = new mongoose.Schema<IResume>(
   }
 );
 
-const ResumeModel =
-  mongoose.models.Resume || mongoose.model("Resume", resumeSchema);
+const ResumeModel = mongoose.models.Resume || mongoose.model("Resume", resumeSchema);
 export default ResumeModel;
