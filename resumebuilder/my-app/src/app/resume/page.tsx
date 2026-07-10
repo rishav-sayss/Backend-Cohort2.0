@@ -115,7 +115,7 @@ export default function ResumeDashboard() {
 
   const fetchResumes = async () => {
     try {
-      const data = await getAllResumesApi();
+      const data = await getAllResumesApi("");
       setResumes(data.resumes || []);
     } catch (error) {
       console.error(error);
@@ -139,6 +139,7 @@ export default function ResumeDashboard() {
 
   const handleDelete = async (resumeId: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    console.log( "handeldelete:-" ,resumeId)
     setDeletingId(resumeId);
     try {
       await deleteResumeApi(resumeId);

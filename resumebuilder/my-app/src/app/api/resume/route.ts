@@ -1,6 +1,8 @@
-import { NextResponse } from "next/server";
+import { NextResponse , NextRequest} from "next/server";
 import ResumeModel from "@/models/resumemodel";
 import { DB } from "@/lib/mongodb";
+import { getcurrentuser } from "@/lib/getCurrentUser";
+import { ApiResponse } from "@/types/api.typs";
 
 export async function GET() {
   try {
@@ -24,3 +26,7 @@ export async function GET() {
     );
   }
 }
+
+ 
+
+ 

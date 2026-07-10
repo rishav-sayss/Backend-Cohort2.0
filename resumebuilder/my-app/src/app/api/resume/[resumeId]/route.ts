@@ -12,20 +12,19 @@ export async function GET(
   try {
     await DB();
 
-    console.log(params);
+    // console.log(params);
 
     const user = await getcurrentuser();
-    console.log("userr in get resume", user);
+    // console.log("userr in get resume", user);
 
     const { resumeId } = await params;
-    console.log("in get resume ", resumeId);
+    // console.log("in get resume ", resumeId);
 
     const resume = await ResumeModel.findOne({
       _id: resumeId,
       //   user_id: user.userId,
     });
 
-    console.log("resume milaaa", resume);
 
     if (!resume)
       return NextResponse.json<ApiResponse>(
@@ -119,9 +118,9 @@ export async function PATCH(
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { resumeId: string } },
+  { params }: { params: Promise<{ resumeId: string }> }
 ) {
-  const resumeId = params.resumeId;
+  const { resumeId } = await params;
 
   await ResumeModel.findByIdAndDelete(resumeId);
 

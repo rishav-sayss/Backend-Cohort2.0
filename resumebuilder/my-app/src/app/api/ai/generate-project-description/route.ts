@@ -1,33 +1,34 @@
-import {  generateAicontent } from "@/lib/gemini";
+import { generateAicontent } from "@/lib/gemini";
 import { GenerateProjectDescriptionBody } from "@/types/ai.types";
 import { ApiResponse } from "@/types/api.typs";
- 
+
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
-    try {
-        const body: GenerateProjectDescriptionBody = await req.json();
+  try {
+    const body: GenerateProjectDescriptionBody = await req.json();
 
-        const { experienceLevel, jobTitle, techStack } = body;
+    const { projectTitle, techStack } = body;
 
-        if (!experienceLevel || !jobTitle || !techStack)
-            return NextResponse.json<ApiResponse>({
-                success: false, message: "Missing fields"
-            }, { status: 400 });
+    if (!projectTitle || !techStack)
+      return NextResponse.json<ApiResponse>(
+        {
+          success: false,
+          message: "Missing fields",
+        },
+        { status: 400 },
+      );
 
-        const prompt = `
+    const prompt = `
             You are an expert resume writer, ATS optimization specialist, and senior software engineer.
             
             Generate a professional, ATS-friendly project description based on the information below.
             
-            Job Title:
-            ${jobTitle}
+            projectTitle:
+            ${projectTitle}
             
-            Experience Level:
-            ${experienceLevel}
-            
-            Tech Stack:
-            ${techStack}
+           Tech Stack:
+         ${techStack.join(", ")}
             
             Rules:
             
@@ -52,27 +53,30 @@ export async function POST(req: NextRequest) {
             Return ONLY the project description text.
             `;
 
-        const result = await  generateAicontent(prompt);
+    const result = await generateAicontent(prompt);
 
-        let projectDescription = result;
+    let projectDescription = result;
 
-
-        return NextResponse.json<ApiResponse>({
-            success: true, message: "projectDescription created", data: {
-                projectDescription
-            }
-        }, {
-            status: 201
-        })
-
-    } catch (error) {
-        console.log("error in projectDescription generation api", error);
-        return NextResponse.json<ApiResponse>(
-            {
-                success: false,
-                message: "Something went wrong",
-            },
-            { status: 500 }
-        );
-    }
+    return NextResponse.json<ApiResponse>(
+      {
+        success: true,
+        message: "projectDescription created",
+        data: {
+          projectDescription,
+        },
+      },
+      {
+        status: 201,
+      },
+    );
+  } catch (error) {
+    console.log("error in projectDescription generation api", error);
+    return NextResponse.json<ApiResponse>(
+      {
+        success: false,
+        message: "Something went wrong",
+      },
+      { status: 500 },
+    );
+  }
 }

@@ -53,7 +53,7 @@ const resumeSchema = new mongoose.Schema<IResume>(
     projects: {
       type: [
         {
-          title: String,
+          projectTitle: String,
           description: String,
           techStack: [String],
           githubUrl: String,

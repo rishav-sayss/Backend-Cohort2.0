@@ -31,10 +31,10 @@ export const generateSkillsApi = async (payload: {
 export const generateExperienceApi = async (payload: {
   jobRole: string;
   experienceLevel: string;
-  techStack?: string[];
-  yearsOfExperience?: number;
+  techStack: string[];
+  yearsOfExperience: number;
 }) => {
-  const response = await axios.post("/api/ai/generate-experience", payload);
+  const response = await axios.post("/api/ai/generate-experience-description", payload);
 
   return response.data;
 };
