@@ -26,6 +26,7 @@ export const useAuth = () => {
   };
 
   const loginsubmit = async (data) => {
+    // console.log(data)
     dispatch(loginemploye(data))
   };
 
