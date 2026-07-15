@@ -5,7 +5,7 @@ import { generateAiResponse } from "../services/gemeni.service.ts";
 export const testmcpcontroller = async (req: Request, res: Response) => {
   const client = await getMcpClient();
 
-  const tools = await client.listTools();
+//   const tools = await client.listTools();
 
   const result = await client.callTool({
     name: "recommend_cats",
