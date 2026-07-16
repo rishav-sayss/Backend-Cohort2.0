@@ -7,40 +7,51 @@ import Home from "../../features/Auth/deshboard/ui/Home";
 import { useEffect } from "react";
 import { currentLoggedinUser } from "../../features/Auth/State/Auth/AuthAction";
 import { useDispatch } from "react-redux";
+import ProtectedRoute from "../protected/ProtectedRoute";
+import PublicRoute from "../protected/PublicRoute";
 
 export const AppRoutes = () => {
-
-  let dispatch  =  useDispatch()
+  let dispatch = useDispatch();
 
   useEffect(() => {
-    (()=>{  
-      dispatch(currentLoggedinUser());
-    }
-    )();
-  }, [])
+    (()=> dispatch(currentLoggedinUser()))()
+  }, []);
 
-  const router = createBrowserRouter([ // Data routing 
+  const router = createBrowserRouter([
+    // Data routing
     {
       path: "/",
-      element: <AuthLayoute />,
+      element: <PublicRoute />,
       children: [
         {
-          path: "/login",
-          element: <Login />,
-        },
-        {
-          path: "/register",
-          element: <Register />,
+          path: "",
+          element: <AuthLayoute/>,
+          children: [
+            {
+              path: "/",
+              element: <Login />,
+            },
+            {
+              path: "/register",
+              element: <Register />,
+            },
+          ],
         },
       ],
     },
     {
       path: "/Home",
-      element: <Deshboard />,
+      element: <ProtectedRoute />,
       children: [
         {
           path: "",
-          element: <Home />,
+          element: <Deshboard />,
+          children: [
+            {
+              path: "",
+              element: <Home />,
+            },
+          ],
         },
       ],
     },

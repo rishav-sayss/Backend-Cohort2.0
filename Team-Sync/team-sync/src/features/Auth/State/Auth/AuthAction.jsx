@@ -8,24 +8,25 @@ export let loginemploye = createAsyncThunk(
            let response = await Axiosinstance.post("/auth/login",credentials)
             console.log(response.data)
            return  response.data.data
+           
         } catch (error) {
             return thunkApi.rejectWithValue(error?.message || 'Login failed');
         }
     }
 );
 
-export let  registeremploye = createAsyncThunk(
-    "auth/login",
-    async (credentials, thunkApi) => {
-        try {
-           let response = await Axiosinstance.post("/auth/register",credentials)
-            console.log(response.data)
-           return  response.data.data
-        } catch (error) {
-            return thunkApi.rejectWithValue(error?.message || 'register failed');
-        }
-    }
-);
+// export let  registeremploye = createAsyncThunk(
+//     "auth/register",
+//     async (credentials, thunkApi) => {
+//         try {
+//            let response = await Axiosinstance.post("/auth/register",credentials)
+//             console.log(response.data)
+//            return  response.data.data
+//         } catch (error) {
+//             return thunkApi.rejectWithValue(error?.message || 'register failed');
+//         }
+//     }
+// );
 
 export const currentLoggedinUser = createAsyncThunk(
   "auth/me",

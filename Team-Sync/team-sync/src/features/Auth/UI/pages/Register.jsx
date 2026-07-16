@@ -5,9 +5,9 @@ import { useAuth } from "../../Hooks/useAuth";
 function getPasswordStrength(password = "") {
   let score = 0;
   if (password.length >= 8) score++;
-  // if (/[A-Z]/.test(password)) score++;
-  // if (/[0-9]/.test(password)) score++;
-  // if (/[^A-Za-z0-9]/.test(password)) score++;
+  if (/[A-Z]/.test(password)) score++;
+  if (/[0-9]/.test(password)) score++;
+  if (/[^A-Za-z0-9]/.test(password)) score++;
   return score; // 0-4
 }
 
@@ -244,7 +244,7 @@ export default function Register() {
               </div>
 
               {/* Terms checkbox */}
-              <div className="mb-6">
+              {/* <div className="mb-6">
                 <label className="flex items-start gap-3 cursor-pointer select-none">
                   <CheckboxVisual name="agree" register={register} />
                   <span className="text-sm text-neutral-400">
@@ -270,7 +270,7 @@ export default function Register() {
                     {errors.agree.message}
                   </p>
                 )}
-              </div>
+              </div> */}
 
               {/* Submit */}
               <button

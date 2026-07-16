@@ -1,6 +1,6 @@
 
 import { createSlice } from "@reduxjs/toolkit";
-import { currentLoggedinUser, loginemploye } from "./AuthAction";
+import { currentLoggedinUser ,  loginemploye } from "./AuthAction";
 
 
 const AuthSlice = createSlice({
@@ -29,14 +29,17 @@ const AuthSlice = createSlice({
         builder.addCase(loginemploye.pending, (state) => {
             state.isLoading = true
         }).addCase(loginemploye.fulfilled , (state ,action) =>{
-            // console.log("LOGIN PAYLOAD:", action.payload);
+            console.log("LOGIN PAYLOAD:", action.payload);
             state.Employes  = action.payload,
+            console.log("LOGIN gaya refresh ka baad:", action.payload);
             state.isLoading = false
         }).addCase(loginemploye.rejected , (state) => {
             state.isLoading = false
-        }).addCase(currentLoggedinUser.pending, (state) => {
+        })
+        .addCase(currentLoggedinUser.pending, (state) => {
             state.isLoading = true
         }).addCase(currentLoggedinUser.fulfilled , (state ,  action) =>{
+            // console.log( "user value" ,action.payload)
             state.Employes  = action.payload,
             state.isLoading = false
         }).addCase(currentLoggedinUser.rejected , (state) => {
