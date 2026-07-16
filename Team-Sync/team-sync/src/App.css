@@ -1,1 +1,336 @@
 @import "tailwindcss";
+
+/* ==========================================================================
+   index.css — Root design tokens
+   Light theme = "Soft Light Professional"  (default, no attribute needed)
+   Dark theme  = "AI Collaboration Framework" (add data-theme="dark" on <html>)
+
+   Toggle usage:
+     document.documentElement.setAttribute('data-theme', 'dark')
+     document.documentElement.setAttribute('data-theme', 'light')
+     document.documentElement.removeAttribute('data-theme')  // falls back to light
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* --------------------------------------------------------------------------
+   Shared tokens (identical across both themes — spacing & radius scale
+   match exactly between the two design docs)
+   -------------------------------------------------------------------------- */
+:root {
+  --font-family-base: 'Inter', system-ui, -apple-system, sans-serif;
+
+  /* Spacing — 8px grid */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 48px;
+  --spacing-3xl: 64px;
+
+  /* Radius */
+  --radius-sm: 0.25rem;
+  --radius-default: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-full: 9999px;
+
+  /* Typography scale (Soft Light Professional — used as the base scale) */
+  --font-h1-size: 36px;
+  --font-h1-weight: 700;
+  --font-h1-line: 1.2;
+  --font-h1-tracking: -0.02em;
+
+  --font-h2-size: 30px;
+  --font-h2-weight: 600;
+  --font-h2-line: 1.3;
+  --font-h2-tracking: -0.01em;
+
+  --font-h3-size: 24px;
+  --font-h3-weight: 600;
+  --font-h3-line: 1.4;
+  --font-h3-tracking: -0.01em;
+
+  --font-body-lg-size: 18px;
+  --font-body-lg-weight: 400;
+  --font-body-lg-line: 1.6;
+
+  --font-body-md-size: 16px;
+  --font-body-md-weight: 400;
+  --font-body-md-line: 1.6;
+
+  --font-body-sm-size: 14px;
+  --font-body-sm-weight: 400;
+  --font-body-sm-line: 1.5;
+
+  --font-label-md-size: 14px;
+  --font-label-md-weight: 500;
+  --font-label-md-tracking: 0.01em;
+
+  --font-label-sm-size: 12px;
+  --font-label-sm-weight: 600;
+}
+
+/* --------------------------------------------------------------------------
+   LIGHT THEME (default) — "Soft Light Professional"
+   -------------------------------------------------------------------------- */
+:root,
+[data-theme='light'] {
+  --color-surface: #fcf8ff;
+  --color-surface-dim: #dbd8e4;
+  --color-surface-bright: #fcf8ff;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f5f2fe;
+  --color-surface-container: #efecf8;
+  --color-surface-container-high: #e9e6f3;
+  --color-surface-container-highest: #e4e1ed;
+
+  --color-on-surface: #1b1b23;
+  --color-on-surface-variant: #464554;
+  --color-inverse-surface: #303038;
+  --color-inverse-on-surface: #f2effb;
+
+  --color-outline: #767586;
+  --color-outline-variant: #c7c4d7;
+
+  --color-surface-tint: #494bd6;
+  --color-primary: #4648d4;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #6063ee;
+  --color-on-primary-container: #fffbff;
+  --color-inverse-primary: #c0c1ff;
+
+  --color-secondary: #505f76;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #d0e1fb;
+  --color-on-secondary-container: #54647a;
+
+  --color-tertiary: #904900;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #b55d00;
+  --color-on-tertiary-container: #fffbff;
+
+  --color-error: #ba1a1a;
+  --color-on-error: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+
+  --color-primary-fixed: #e1e0ff;
+  --color-primary-fixed-dim: #c0c1ff;
+  --color-on-primary-fixed: #07006c;
+  --color-on-primary-fixed-variant: #2f2ebe;
+
+  --color-secondary-fixed: #d3e4fe;
+  --color-secondary-fixed-dim: #b7c8e1;
+  --color-on-secondary-fixed: #0b1c30;
+  --color-on-secondary-fixed-variant: #38485d;
+
+  --color-tertiary-fixed: #ffdcc5;
+  --color-tertiary-fixed-dim: #ffb783;
+  --color-on-tertiary-fixed: #301400;
+  --color-on-tertiary-fixed-variant: #703700;
+
+  --color-background: #fcf8ff;
+  --color-on-background: #1b1b23;
+  --color-surface-variant: #e4e1ed;
+
+  /* Elevation shadows (light theme uses ambient shadows, not glassmorphism) */
+  --shadow-level1: none;
+  --shadow-level2: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  --shadow-level3: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+  --border-default: 1px solid var(--color-outline-variant);
+}
+
+/* --------------------------------------------------------------------------
+   DARK THEME — "AI Collaboration Framework"
+   Activate with: <html data-theme="dark">
+   -------------------------------------------------------------------------- */
+[data-theme='dark'] {
+  --color-surface: #141218;
+  --color-surface-dim: #141218;
+  --color-surface-bright: #3b383e;
+  --color-surface-container-lowest: #0f0d13;
+  --color-surface-container-low: #1d1b20;
+  --color-surface-container: #211f24;
+  --color-surface-container-high: #2b292f;
+  --color-surface-container-highest: #36343a;
+
+  --color-on-surface: #e6e0e9;
+  --color-on-surface-variant: #cbc4d2;
+  --color-inverse-surface: #e6e0e9;
+  --color-inverse-on-surface: #322f35;
+
+  --color-outline: #948e9c;
+  --color-outline-variant: #494551;
+
+  --color-surface-tint: #cfbcff;
+  --color-primary: #cfbcff;
+  --color-on-primary: #381e72;
+  --color-primary-container: #6750a4;
+  --color-on-primary-container: #e0d2ff;
+  --color-inverse-primary: #6750a4;
+
+  --color-secondary: #cdc0e9;
+  --color-on-secondary: #342b4b;
+  --color-secondary-container: #4d4465;
+  --color-on-secondary-container: #bfb2da;
+
+  --color-tertiary: #e7c365;
+  --color-on-tertiary: #3e2e00;
+  --color-tertiary-container: #c9a74d;
+  --color-on-tertiary-container: #503d00;
+
+  --color-error: #ffb4ab;
+  --color-on-error: #690005;
+  --color-error-container: #93000a;
+  --color-on-error-container: #ffdad6;
+
+  --color-primary-fixed: #e9ddff;
+  --color-primary-fixed-dim: #cfbcff;
+  --color-on-primary-fixed: #22005d;
+  --color-on-primary-fixed-variant: #4f378a;
+
+  --color-secondary-fixed: #e9ddff;
+  --color-secondary-fixed-dim: #cdc0e9;
+  --color-on-secondary-fixed: #1f1635;
+  --color-on-secondary-fixed-variant: #4b4263;
+
+  --color-tertiary-fixed: #ffdf93;
+  --color-tertiary-fixed-dim: #e7c365;
+  --color-on-tertiary-fixed: #241a00;
+  --color-on-tertiary-fixed-variant: #594400;
+
+  --color-background: #141218;
+  --color-on-background: #e6e0e9;
+  --color-surface-variant: #36343a;
+
+  /* Elevation — dark theme uses glassmorphism + backdrop blur */
+  --shadow-level1: none;
+  --shadow-level2: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+  --shadow-level3: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+  --border-default: 1px solid var(--color-outline-variant);
+  --blur-panel: blur(12px);
+}
+
+/* --------------------------------------------------------------------------
+   Base element styles wired to the tokens above
+   -------------------------------------------------------------------------- */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: light dark;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-family-base);
+  background-color: var(--color-background);
+  color: var(--color-on-background);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+h1 {
+  font-size: var(--font-h1-size);
+  font-weight: var(--font-h1-weight);
+  line-height: var(--font-h1-line);
+  letter-spacing: var(--font-h1-tracking);
+  color: var(--color-on-surface);
+  margin: 0;
+}
+
+h2 {
+  font-size: var(--font-h2-size);
+  font-weight: var(--font-h2-weight);
+  line-height: var(--font-h2-line);
+  letter-spacing: var(--font-h2-tracking);
+  color: var(--color-on-surface);
+  margin: 0;
+}
+
+h3 {
+  font-size: var(--font-h3-size);
+  font-weight: var(--font-h3-weight);
+  line-height: var(--font-h3-line);
+  letter-spacing: var(--font-h3-tracking);
+  color: var(--color-on-surface);
+  margin: 0;
+}
+
+p {
+  font-size: var(--font-body-md-size);
+  font-weight: var(--font-body-md-weight);
+  line-height: var(--font-body-md-line);
+  color: var(--color-on-surface-variant);
+  margin: 0;
+}
+
+.text-body-lg {
+  font-size: var(--font-body-lg-size);
+  line-height: var(--font-body-lg-line);
+}
+
+.text-body-sm {
+  font-size: var(--font-body-sm-size);
+  line-height: var(--font-body-sm-line);
+}
+
+.text-label-md {
+  font-size: var(--font-label-md-size);
+  font-weight: var(--font-label-md-weight);
+  letter-spacing: var(--font-label-md-tracking);
+}
+
+.text-label-sm {
+  font-size: var(--font-label-sm-size);
+  font-weight: var(--font-label-sm-weight);
+  text-transform: uppercase;
+}
+
+/* --------------------------------------------------------------------------
+   Example reusable primitives — remove/adjust as your components take shape
+   -------------------------------------------------------------------------- */
+.surface {
+  background-color: var(--color-surface-container);
+  border: var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+}
+
+.btn-primary {
+  background-color: var(--color-primary);
+  color: var(--color-on-primary);
+  border: none;
+  border-radius: var(--radius-default);
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-family: var(--font-family-base);
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+
+.btn-primary:hover {
+  filter: brightness(1.08);
+}
+
+.btn-secondary {
+  background-color: var(--color-surface);
+  color: var(--color-primary);
+  border: var(--border-default);
+  border-radius: var(--radius-default);
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-family: var(--font-family-base);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.card {
+  background-color: var(--color-surface-container-lowest);
+  border: var(--border-default);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-level2);
+  padding: var(--spacing-lg);
+}
