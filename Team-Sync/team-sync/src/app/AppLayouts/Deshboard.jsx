@@ -1,8 +1,8 @@
 import React from 'react';
 import { Outlet } from 'react-router';
 import { useSelector } from 'react-redux';
-import Sidebar from '../../features/Auth/deshboard/ui/Sidebar';
-import TopNavbar from '../../features/Auth/deshboard/ui/TopNavbar';
+import Sidebar from '../../features/dashboard/ui/components/pages/Sidebar';
+import TopNavbar from '../../features/dashboard/ui/components/pages/TopNavbar';
 
 function Deshboard() {
   // Redux se theme mode read karo — "dark" ya "light"
@@ -13,7 +13,7 @@ function Deshboard() {
     // App.css ke [data-theme='dark'] / [data-theme='light'] variables activate honge
     <div
       data-theme={theme ?? 'dark'}
-      className="flex h-screen w-screen overflow-hidden bg-[var(--color-background)] transition-colors duration-300"
+      className="flex h-screen w-screen overflow-hidden bg-(--color-background) transition-colors duration-300"
     >
       {/* Static Left Sidebar */}
       <Sidebar />
@@ -24,8 +24,9 @@ function Deshboard() {
         <TopNavbar />
 
         {/* Dynamic Content Area — changes per route via <Outlet/> */}
-        <main className="flex-1 overflow-y-auto overflow-x-hidden p-7 bg-[var(--color-background)] transition-colors duration-300">
-          <Outlet />
+        <main className="flex-1 overflow-y-auto overflow-x-hidden p-7 bg-(--color-background) transition-colors duration-300">
+          <Outlet /> 
+          {/* // ye actualy Home.jsx he h */}
         </main>
       </div>
     </div>

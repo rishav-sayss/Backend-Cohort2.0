@@ -3,18 +3,21 @@ import AuthLayoute from "../AppLayouts/AuthLayoute";
 import Login from "../../features/Auth/UI/pages/Login";
 import Register from "../../features/Auth/UI/pages/register";
 import Deshboard from "../AppLayouts/Deshboard";
-import Home from "../../features/Auth/deshboard/ui/Home";
+import Home from "../../features/Auth/deshboard/ui/component/Home";
 import { useEffect } from "react";
 import { currentLoggedinUser } from "../../features/Auth/State/Auth/AuthAction";
 import { useDispatch } from "react-redux";
 import ProtectedRoute from "../protected/ProtectedRoute";
 import PublicRoute from "../protected/PublicRoute";
+import { commanRoute } from "./commanRoute";
+import RolebasedRoute from "../protected/RolebasedRoute";
+import { AdminRoute } from "./adminroute";
 
 export const AppRoutes = () => {
   let dispatch = useDispatch();
 
   useEffect(() => {
-    (()=> dispatch(currentLoggedinUser()))()
+    (() => dispatch(currentLoggedinUser()))();
   }, []);
 
   const router = createBrowserRouter([
@@ -25,7 +28,7 @@ export const AppRoutes = () => {
       children: [
         {
           path: "",
-          element: <AuthLayoute/>,
+          element: <AuthLayoute />,
           children: [
             {
               path: "/",
@@ -40,16 +43,21 @@ export const AppRoutes = () => {
       ],
     },
     {
-      path: "/Home",
+      path: "/home",
       element: <ProtectedRoute />,
       children: [
         {
           path: "",
           element: <Deshboard />,
           children: [
+            ...commanRoute,
             {
-              path: "",
-              element: <Home />,
+              element: <RolebasedRoute allowedRole={"admin"} />,
+              children: AdminRoute,
+            },
+            {
+              element: <RolebasedRoute allowedRole={"employee"} />,
+              children: AdminRoute,
             },
           ],
         },

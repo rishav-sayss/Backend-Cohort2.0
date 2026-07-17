@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { toggleTheme } from '../../../../shared/state/themeslice';
+import { toggleTheme } from '../../../../../shared/state/themeslice';
 
 function TopNavbar() {
   const [searchFocused, setSearchFocused] = useState(false);

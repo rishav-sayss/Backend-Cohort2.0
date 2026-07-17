@@ -86,7 +86,7 @@ function Home() {
       {/* Greeting */}
       <div>
         <h1 className="text-[28px] font-bold text-[var(--color-on-surface)] tracking-tight flex items-center gap-2.5 mb-1.5">
-          Good morning, Devendra 👋
+          Good morning, Rishabh  👋
         </h1>
         <p className="text-sm text-[var(--color-on-surface-variant)]">
           Here's what's happening in TeamSync today.
