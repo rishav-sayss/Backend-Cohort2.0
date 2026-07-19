@@ -64,7 +64,7 @@ function Sidebar() {
 
   let  { Employes }  =  useSelector((store) => store.Auth)
 
-  console.log( Employes)
+  // console.log( Employes)
    let navigations =  Employes.role === "admin" ? AdminNavigation : employeeNavigation
 
   return (

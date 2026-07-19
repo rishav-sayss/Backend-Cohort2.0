@@ -1,6 +1,6 @@
 import axios from "axios"
 
-export  const Axiosinstance = axios.create({
+export  let Axiosinstance = axios.create({
     
     baseURL: "/api",
     withCredentials: true
